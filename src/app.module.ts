@@ -6,6 +6,7 @@ import { User } from './user/entities/user.entity';
 import { Verification } from './user/entities/verification.entity';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from './jwt/jwt.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ConfigModule } from '@nestjs/config';
       synchronize: true,
       logging: true,
     }),
+    JwtModule.forRoot({ secret: process.env.JWT_SECRET }),
     CommonModule,
     UserModule,
   ],
