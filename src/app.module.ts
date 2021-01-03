@@ -18,6 +18,9 @@ import { JwtModule } from './jwt/jwt.module';
       autoSchemaFile: true,
       playground: true,
       debug: false,
+      context: (context) => {
+        console.log(context);
+      },
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
