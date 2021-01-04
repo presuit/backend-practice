@@ -1,11 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtServices } from 'src/jwt/jwt.services';
+import { MsgProps } from 'src/sms/sms.interfaces';
+import { SmsServices } from 'src/sms/sms.services';
 import { Repository } from 'typeorm';
 import {
   CreateAccountInput,
   CreateAccountOutput,
 } from './dtos/create-account.dto';
+import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
+import {
+  FindUserByIdInput,
+  FindUserByIdOutput,
+} from './dtos/find-user-by-id.dto';
 import { LogInInput, LogInOutput } from './dtos/log-in.dto';
 import { User } from './entities/user.entity';
 import { Verification } from './entities/verification.entity';
@@ -17,6 +24,7 @@ export class UserServices {
     @InjectRepository(Verification)
     private readonly verifications: Repository<Verification>,
     private readonly jwtServices: JwtServices,
+    private readonly SmsServices: SmsServices,
   ) {}
 
   async createAccount({
@@ -35,9 +43,16 @@ export class UserServices {
       const newUser = await this.users.save(
         this.users.create({ email, password, username }),
       );
-      await this.verifications.save(
+      const newVerification = await this.verifications.save(
         this.verifications.create({ user: newUser }),
       );
+      const msgObj: MsgProps = {
+        type: 'SMS',
+        to: '01031773516',
+        from: '01031773516',
+        text: `반갑소 찬공, 찬공의 확인 코드는 ${newVerification.code} 이오`,
+      };
+      await this.SmsServices.sendMsg(msgObj);
       return {
         ok: true,
       };
@@ -72,6 +87,59 @@ export class UserServices {
       return {
         ok: false,
         error: '로그인 실패',
+      };
+    }
+  }
+
+  async editProfile(
+    input: EditProfileInput,
+    user: User,
+  ): Promise<EditProfileOutput> {
+    try {
+      const inputUser = await this.users.findOne(input.userId);
+      if (!inputUser) {
+        return {
+          ok: false,
+          error: '요청하신 유저가 존재하지 않습니다.',
+        };
+      }
+      if (inputUser.id !== user.id) {
+        return {
+          ok: false,
+          error: '다른 유저의 정보에 접근할 수 없습니다.',
+        };
+      }
+      if (input.password) {
+        user.password = input.password;
+      }
+      if (input.username) {
+        user.username = input.username;
+      }
+      await this.users.save(user);
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: '프로필 업데이트에 실패했습니다.',
+      };
+    }
+  }
+
+  async findUserById({
+    userId,
+  }: FindUserByIdInput): Promise<FindUserByIdOutput> {
+    try {
+      const user = await this.users.findOne(userId);
+      return {
+        ok: true,
+        user,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: '해당 아이디를 가진 유저를 찾을 수 없습니다.',
       };
     }
   }

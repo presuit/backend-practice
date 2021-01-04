@@ -7,6 +7,7 @@ import { Verification } from './user/entities/verification.entity';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from './jwt/jwt.module';
+import { SmsModule } from './sms/sms.module';
 
 @Module({
   imports: [
@@ -19,7 +20,11 @@ import { JwtModule } from './jwt/jwt.module';
       playground: true,
       debug: false,
       context: (context) => {
-        console.log(context);
+        if (context.req) {
+          return {
+            token: context.req.headers['x-jwt'],
+          };
+        }
       },
     }),
     TypeOrmModule.forRoot({
@@ -36,6 +41,10 @@ import { JwtModule } from './jwt/jwt.module';
     JwtModule.forRoot({ secret: process.env.JWT_SECRET }),
     CommonModule,
     UserModule,
+    SmsModule.forRoot({
+      apiKey: process.env.SOLAPI_API_KEY,
+      apiSecret: process.env.SOLAPI_SECRET_KEY,
+    }),
   ],
   controllers: [],
   providers: [],

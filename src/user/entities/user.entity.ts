@@ -11,7 +11,7 @@ export class User extends Common {
   @Field((type) => String)
   email: string;
 
-  @Column()
+  @Column({})
   @Field((type) => String)
   password: string;
 
@@ -26,6 +26,7 @@ export class User extends Common {
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword(): Promise<void> {
+    console.log('hash!');
     if (this.password) {
       this.password = await bcrypt.hash(this.password, 10);
     }
