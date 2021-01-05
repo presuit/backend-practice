@@ -8,6 +8,12 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from './jwt/jwt.module';
 import { SmsModule } from './sms/sms.module';
+import { ProductModule } from './product/product.module';
+import { Product } from './product/entities/product.entity';
+import { Category } from './product/entities/category.entity';
+import { Img } from './product/entities/img-entity';
+import { RoomModule } from './room/room.module';
+import { Room } from './room/entities/room.entity';
 
 @Module({
   imports: [
@@ -34,7 +40,7 @@ import { SmsModule } from './sms/sms.module';
       username: process.env.PG_USERNAME,
       password: process.env.PG_PASSWORD,
       database: process.env.PG_DATABASE,
-      entities: [User, Verification],
+      entities: [User, Verification, Product, Category, Img, Room],
       synchronize: true,
       logging: true,
     }),
@@ -45,6 +51,8 @@ import { SmsModule } from './sms/sms.module';
       apiKey: process.env.SOLAPI_API_KEY,
       apiSecret: process.env.SOLAPI_SECRET_KEY,
     }),
+    ProductModule,
+    RoomModule,
   ],
   controllers: [],
   providers: [],

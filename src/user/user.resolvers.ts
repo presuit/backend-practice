@@ -17,11 +17,6 @@ import { UserServices } from './user.services';
 export class UserResolvers {
   constructor(private readonly userServices: UserServices) {}
 
-  @Query((returns) => String)
-  sayHello(): string {
-    return 'Hello world';
-  }
-
   @Mutation((returns) => CreateAccountOutput)
   createAccount(
     @Args('input') input: CreateAccountInput,
