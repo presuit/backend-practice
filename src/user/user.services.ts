@@ -4,6 +4,7 @@ import { JwtServices } from 'src/jwt/jwt.services';
 import { MsgProps } from 'src/sms/sms.interfaces';
 import { SmsServices } from 'src/sms/sms.services';
 import { Repository } from 'typeorm';
+import { ConfirmVerificationCodeOutput } from './dtos/confirm-verification-code.dto';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -140,6 +141,47 @@ export class UserServices {
       return {
         ok: false,
         error: '해당 아이디를 가진 유저를 찾을 수 없습니다.',
+      };
+    }
+  }
+
+  async confirmVerificationCode(
+    user: User,
+    code: string,
+  ): Promise<ConfirmVerificationCodeOutput> {
+    try {
+      if (user.isVerified === true) {
+        return {
+          ok: false,
+          error: '이미 인증 된 계정입니다.',
+        };
+      }
+      const verification = await this.verifications.findOne(
+        { code },
+        { relations: ['user'] },
+      );
+      if (!verification) {
+        return {
+          ok: false,
+          error: '해당 코드를 가진 Verification이 존재하지 않습니다.',
+        };
+      }
+      if (verification.user.id !== user.id) {
+        return {
+          ok: false,
+          error: '해당 코드는 당신의 Verification Code와 맞지 않습니다.',
+        };
+      }
+      user.isVerified = true;
+      await this.users.save(user);
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        ok: false,
+        error: 'Verification code 판별에 실패했습니다.',
       };
     }
   }

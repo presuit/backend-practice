@@ -14,6 +14,8 @@ import { Category } from './product/entities/category.entity';
 import { Img } from './product/entities/img-entity';
 import { RoomModule } from './room/room.module';
 import { Room } from './room/entities/room.entity';
+import { MsgModule } from './msg/msg.module';
+import { Msg } from './msg/entities/msg.entity';
 
 @Module({
   imports: [
@@ -40,7 +42,7 @@ import { Room } from './room/entities/room.entity';
       username: process.env.PG_USERNAME,
       password: process.env.PG_PASSWORD,
       database: process.env.PG_DATABASE,
-      entities: [User, Verification, Product, Category, Img, Room],
+      entities: [User, Verification, Product, Category, Img, Room, Msg],
       synchronize: true,
       logging: true,
     }),
@@ -53,6 +55,7 @@ import { Room } from './room/entities/room.entity';
     }),
     ProductModule,
     RoomModule,
+    MsgModule,
   ],
   controllers: [],
   providers: [],

@@ -7,10 +7,12 @@ import {
   Entity,
   ManyToMany,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Product } from 'src/product/entities/product.entity';
 import { Room } from 'src/room/entities/room.entity';
+import { Msg } from 'src/msg/entities/msg.entity';
 
 @InputType('UserEntityInput', { isAbstract: true })
 @Entity()
@@ -20,7 +22,7 @@ export class User extends Common {
   @Field((type) => String)
   email: string;
 
-  @Column({})
+  @Column({ select: false })
   @Field((type) => String)
   password: string;
 
@@ -44,10 +46,13 @@ export class User extends Common {
   @Field((type) => [Room], { nullable: true })
   rooms?: Room[];
 
+  @Field((type) => [Msg], { nullable: true })
+  @OneToOne((type) => Msg, { nullable: true })
+  msgs?: Msg[];
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword(): Promise<void> {
-    console.log('hash!');
     if (this.password) {
       this.password = await bcrypt.hash(this.password, 10);
     }
