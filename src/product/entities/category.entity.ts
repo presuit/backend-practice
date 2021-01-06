@@ -1,7 +1,7 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
-import { Product } from '../../product/entities/product.entity';
+import { Product } from './product.entity';
 
 @InputType('CategoryEntityInput', { isAbstract: true })
 @ObjectType()

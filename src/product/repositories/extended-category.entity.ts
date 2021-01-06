@@ -1,11 +1,11 @@
 import { EntityRepository, Repository } from 'typeorm';
-import { Category } from './category.entity';
+import { Category } from '../entities/category.entity';
 
 @EntityRepository(Category)
 export class CategoryRepository extends Repository<Category> {
   async getOrCreateCategory(name: string): Promise<Category> {
-    const slug = name.trim().replace(' ', '-');
-    let category = await this.findOne({ name, slug });
+    const slug = name.toLowerCase().trim().replace(/ /g, '-');
+    let category = await this.findOne({ slug });
     if (category) {
       return category;
     }

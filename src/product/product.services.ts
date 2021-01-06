@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { getCustomRepository, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   CreateProductInput,
   CreateProductOutput,
 } from './dtos/create-product.dto';
-import { Category } from '../category/entities/category.entity';
-import { Product } from './entities/product.entity';
-import { Img } from './entities/img-entity';
+import { Product, DetailImg } from './entities/product.entity';
 import { Room } from 'src/room/entities/room.entity';
-import { CategoryRepository } from 'src/category/entities/extended-category.entity';
+import { CategoryRepository } from 'src/product/repositories/extended-category.entity';
 
 @Injectable()
 export class ProductServices {
@@ -18,14 +16,13 @@ export class ProductServices {
     @InjectRepository(Product) private readonly products: Repository<Product>,
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(CategoryRepository)
-    private readonly categories: Repository<CategoryRepository>,
-    @InjectRepository(Img) private readonly imgs: Repository<Img>,
+    private readonly categories: CategoryRepository,
     @InjectRepository(Room) private readonly rooms: Repository<Room>,
   ) {}
 
   async createProduct(
     user: User,
-    { categoryName, name, price, bigImgSrc, detailImgSrcs }: CreateProductInput,
+    { categoryName, name, price, bigImg, detailImgs }: CreateProductInput,
   ): Promise<CreateProductOutput> {
     try {
       const product = await this.products.save(
@@ -33,37 +30,31 @@ export class ProductServices {
           name,
           price,
           seller: user,
+          bigImg,
         }),
       );
+
+      if (detailImgs && detailImgs.length !== 0) {
+        const detailImgContainer: DetailImg[] = [];
+        for (const item of detailImgs) {
+          const detailImg = new DetailImg();
+          detailImg.source = item;
+          detailImgContainer.push(detailImg);
+        }
+        product.detailImgs = detailImgContainer;
+      }
 
       const room = await this.rooms.save(this.rooms.create({ product }));
       product.room = room;
 
-      if (bigImgSrc) {
-        const bigImg = await this.imgs.save(
-          this.imgs.create({ source: bigImgSrc, product }),
-        );
-        product.bigImg = bigImg;
-      }
+      const category = await this.categories.getOrCreateCategory(categoryName);
+      product.category = category;
 
-      if (detailImgSrcs && detailImgSrcs.length !== 0) {
-        const detailImgs: Img[] = [];
-        for (const eachDetailImgSrc of detailImgSrcs) {
-          const detailImg = await this.imgs.save(
-            this.imgs.create({
-              source: eachDetailImgSrc,
-              product,
-            }),
-          );
-          detailImgs.push(detailImg);
-        }
-        product.detailImgs = detailImgs;
-      }
-      //   category 만들어서 추가하는 로직 필요함
-
+      console.log(product);
       await this.products.save(product);
       return { ok: true };
     } catch (error) {
+      console.log(error);
       return {
         ok: false,
         error: '프로덕트 만들기 실패',

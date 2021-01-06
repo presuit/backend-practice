@@ -10,13 +10,11 @@ import { JwtModule } from './jwt/jwt.module';
 import { SmsModule } from './sms/sms.module';
 import { ProductModule } from './product/product.module';
 import { Product } from './product/entities/product.entity';
-import { Category } from './category/entities/category.entity';
-import { Img } from './product/entities/img-entity';
+import { Category } from './product/entities/category.entity';
 import { RoomModule } from './room/room.module';
 import { Room } from './room/entities/room.entity';
 import { MsgModule } from './msg/msg.module';
 import { Msg } from './msg/entities/msg.entity';
-import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -43,7 +41,7 @@ import { CategoryModule } from './category/category.module';
       username: process.env.PG_USERNAME,
       password: process.env.PG_PASSWORD,
       database: process.env.PG_DATABASE,
-      entities: [User, Verification, Product, Category, Img, Room, Msg],
+      entities: [User, Verification, Product, Category, Room, Msg],
       synchronize: true,
       logging: true,
     }),
@@ -57,7 +55,6 @@ import { CategoryModule } from './category/category.module';
     ProductModule,
     RoomModule,
     MsgModule,
-    CategoryModule,
   ],
   controllers: [],
   providers: [],
