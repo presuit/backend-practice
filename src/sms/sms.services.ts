@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+// @ts-ignore
 import * as solapi from 'solapi';
 import { MsgProps, SmsOptions, SMS_OPTIONS } from './sms.interfaces';
 

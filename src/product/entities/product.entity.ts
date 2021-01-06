@@ -2,15 +2,8 @@ import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
 import { Room } from 'src/room/entities/room.entity';
 import { User } from 'src/user/entities/user.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-} from 'typeorm';
-import { Category } from './category.entity';
+import { Column, Entity, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import { Category } from '../../category/entities/category.entity';
 import { Img } from './img-entity';
 
 @InputType('ProductEntityInput', { isAbstract: true })
@@ -35,12 +28,12 @@ export class Product extends Common {
   //   해당 상품이 사용자에게 보여질때 쓰일 대문 이미지에 대한 링크 주소 값
   @Field((type) => Img, { nullable: true })
   @OneToMany((type) => Img, (img) => img.product, { nullable: true })
-  bigImgSrc?: Img;
+  bigImg?: Img;
 
   //   상품 내부에 존재 하는 디테일한 상품 이미지에 대한 링크 주소 값들
   @Field((type) => [Img], { nullable: true })
   @OneToMany((type) => Img, (img) => img.product, { nullable: true })
-  detailImgSrcs?: Img[];
+  detailImgs?: Img[];
 
   //   이 상품을 판매하는 사람
   @Field((type) => User)
@@ -58,7 +51,7 @@ export class Product extends Common {
   })
   category: Category;
 
-  @Field((type) => Room)
-  @OneToOne((type) => Room, (room) => room.product)
-  room: Room;
+  @Field((type) => Room, { nullable: true })
+  @OneToOne((type) => Room, (room) => room.product, { nullable: true })
+  room?: Room;
 }

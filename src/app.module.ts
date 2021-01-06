@@ -10,12 +10,13 @@ import { JwtModule } from './jwt/jwt.module';
 import { SmsModule } from './sms/sms.module';
 import { ProductModule } from './product/product.module';
 import { Product } from './product/entities/product.entity';
-import { Category } from './product/entities/category.entity';
+import { Category } from './category/entities/category.entity';
 import { Img } from './product/entities/img-entity';
 import { RoomModule } from './room/room.module';
 import { Room } from './room/entities/room.entity';
 import { MsgModule } from './msg/msg.module';
 import { Msg } from './msg/entities/msg.entity';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { Msg } from './msg/entities/msg.entity';
     ProductModule,
     RoomModule,
     MsgModule,
+    CategoryModule,
   ],
   controllers: [],
   providers: [],
