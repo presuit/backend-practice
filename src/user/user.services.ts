@@ -47,13 +47,13 @@ export class UserServices {
       const newVerification = await this.verifications.save(
         this.verifications.create({ user: newUser }),
       );
-      const msgObj: MsgProps = {
-        type: 'SMS',
-        to: '01031773516',
-        from: '01031773516',
-        text: `반갑소 찬공, 찬공의 확인 코드는 ${newVerification.code} 이오`,
-      };
-      await this.SmsServices.sendMsg(msgObj);
+      // const msgObj: MsgProps = {
+      //   type: 'SMS',
+      //   to: '01031773516',
+      //   from: '01031773516',
+      //   text: `반갑소 찬공, 찬공의 확인 코드는 ${newVerification.code} 이오`,
+      // };
+      // await this.SmsServices.sendMsg(msgObj);
       return {
         ok: true,
       };
@@ -68,7 +68,10 @@ export class UserServices {
 
   async logIn({ email, password }: LogInInput): Promise<LogInOutput> {
     try {
-      const user = await this.users.findOne({ email });
+      const user = await this.users.findOne(
+        { email },
+        { select: ['password', 'id'] },
+      );
       if (!user) {
         return {
           ok: false,

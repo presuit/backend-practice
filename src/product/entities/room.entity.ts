@@ -9,7 +9,9 @@ import { Entity, JoinColumn, JoinTable, ManyToMany, OneToOne } from 'typeorm';
 @Entity()
 export class Room extends Common {
   @Field((type) => Product)
-  @OneToOne((type) => Product, (prodect) => prodect.room)
+  @OneToOne((type) => Product, (product) => product.room, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   product: Product;
 

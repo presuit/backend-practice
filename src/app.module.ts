@@ -11,8 +11,7 @@ import { SmsModule } from './sms/sms.module';
 import { ProductModule } from './product/product.module';
 import { Product } from './product/entities/product.entity';
 import { Category } from './product/entities/category.entity';
-import { RoomModule } from './room/room.module';
-import { Room } from './room/entities/room.entity';
+import { Room } from './product/entities/room.entity';
 import { MsgModule } from './msg/msg.module';
 import { Msg } from './msg/entities/msg.entity';
 
@@ -53,7 +52,6 @@ import { Msg } from './msg/entities/msg.entity';
       apiSecret: process.env.SOLAPI_SECRET_KEY,
     }),
     ProductModule,
-    RoomModule,
     MsgModule,
   ],
   controllers: [],

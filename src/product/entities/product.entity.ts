@@ -1,8 +1,15 @@
 import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
-import { Room } from 'src/room/entities/room.entity';
+import { Room } from 'src/product/entities/room.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  RelationId,
+} from 'typeorm';
 import { Category } from './category.entity';
 
 @InputType('DetailImgInput', { isAbstract: true })
@@ -43,24 +50,41 @@ export class Product extends Common {
 
   //   이 상품을 판매하는 사람
   @Field((type) => User)
-  @ManyToOne((type) => User, (user) => user.sellingProducts)
+  @ManyToOne((type) => User, (user) => user.sellingProducts, {
+    onDelete: 'CASCADE',
+  })
   seller: User;
 
+  @RelationId((product: Product) => product.seller)
+  sellerId: number;
+
+  // 당첨돼서 이 상품을 구매할 사람
   @Field((type) => User, { nullable: true })
   @ManyToOne((type) => User, (user) => user.buyingProducts, { nullable: true })
   buyer?: User;
 
+  @RelationId((product: Product) => product.buyer)
+  buyerId: number;
+
   //   상품에 대한 카테고리
   @Field((type) => Category)
-  @ManyToOne((type) => Category, (category) => category.products, {
-    onDelete: 'SET NULL',
-  })
+  @ManyToOne((type) => Category, (category) => category.products)
   category: Category;
 
+  @RelationId((product: Product) => product.category)
+  categoryId: number;
+
+  // 상품이 만들어지면 참가자들을 참가시키고 보관하는 엔티티
   @Field((type) => Room, { nullable: true })
   @OneToOne((type) => Room, (room) => room.product, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   room?: Room;
+
+  @RelationId((product: Product) => product.room)
+  roomId: number;
+
+  @Field((type) => Boolean, { defaultValue: false })
+  @Column({ default: false })
+  soldout: boolean;
 }

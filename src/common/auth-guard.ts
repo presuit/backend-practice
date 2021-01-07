@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtServices } from 'src/jwt/jwt.services';
 import { UserServices } from 'src/user/user.services';
-import { AllowedAuthRole } from './auth-roles';
+import { AuthRole } from './auth-roles';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -13,10 +13,7 @@ export class AuthGuard implements CanActivate {
     private reflector: Reflector,
   ) {}
   async canActivate(context: ExecutionContext) {
-    const roles = this.reflector.get<AllowedAuthRole>(
-      'roles',
-      context.getHandler(),
-    );
+    const roles = this.reflector.get<AuthRole>('roles', context.getHandler());
     if (!roles) {
       return true;
     }

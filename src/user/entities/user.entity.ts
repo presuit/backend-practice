@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Product } from 'src/product/entities/product.entity';
-import { Room } from 'src/room/entities/room.entity';
+import { Room } from 'src/product/entities/room.entity';
 import { Msg } from 'src/msg/entities/msg.entity';
 
 @InputType('UserEntityInput', { isAbstract: true })
