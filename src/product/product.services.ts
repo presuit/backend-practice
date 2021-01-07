@@ -20,6 +20,7 @@ import {
 import { JoinRoomInput, JoinRoomOutput } from './dtos/join-room.dto';
 import { isObjectBindingPattern } from 'typescript';
 import { AllRoomsOutput } from './dtos/all-rooms.dto';
+import { AllProductsOuput } from './dtos/all-products.dto';
 
 @Injectable()
 export class ProductServices {
@@ -30,6 +31,21 @@ export class ProductServices {
     private readonly categories: CategoryRepository,
     @InjectRepository(Room) private readonly rooms: Repository<Room>,
   ) {}
+
+  async allProducts(): Promise<AllProductsOuput> {
+    try {
+      const products = await this.products.find();
+      if (!products) {
+        return { ok: false, error: 'products가 존재하지 않습니다.' };
+      }
+      return {
+        ok: true,
+        products,
+      };
+    } catch (error) {
+      return { ok: false, error: 'products가 존재하지 않습니다.' };
+    }
+  }
 
   async createProduct(
     user: User,
