@@ -1,5 +1,6 @@
 import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
+import { MsgRoom } from 'src/msg/entities/msg-room.entity';
 import { Room } from 'src/product/entities/room.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -79,10 +80,19 @@ export class Product extends Common {
   @OneToOne((type) => Room, (room) => room.product, {
     nullable: true,
   })
+  @JoinColumn()
   room?: Room;
 
   @RelationId((product: Product) => product.room)
   roomId: number;
+
+  @Field((type) => MsgRoom, { nullable: true })
+  @OneToOne((type) => MsgRoom, (msgRoom) => msgRoom.product, { nullable: true })
+  @JoinColumn()
+  msgRoom?: MsgRoom;
+
+  @RelationId((product: Product) => product.msgRoom)
+  msgRoomId: number;
 
   @Field((type) => Boolean, { defaultValue: false })
   @Column({ default: false })

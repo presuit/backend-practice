@@ -5,14 +5,19 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  JoinColumn,
+  JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   OneToOne,
+  RelationId,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Product } from 'src/product/entities/product.entity';
 import { Room } from 'src/product/entities/room.entity';
-import { Msg } from 'src/msg/entities/msg.entity';
+import { MsgRoom } from 'src/msg/entities/msg-room.entity';
+import { Wallet } from 'src/user/entities/wallet.entity';
 
 @InputType('UserEntityInput', { isAbstract: true })
 @Entity()
@@ -46,9 +51,20 @@ export class User extends Common {
   @Field((type) => [Room], { nullable: true })
   rooms?: Room[];
 
-  @Field((type) => [Msg], { nullable: true })
-  @OneToOne((type) => Msg, { nullable: true })
-  msgs?: Msg[];
+  @ManyToMany((type) => MsgRoom, (msgRoom) => msgRoom.participants, {
+    nullable: true,
+  })
+  @JoinTable()
+  @Field((type) => [MsgRoom], { nullable: true })
+  msgRooms?: MsgRoom[];
+
+  @RelationId((user: User) => user.msgRooms)
+  msgRoomsId: number[];
+
+  @OneToOne((type) => Wallet, (wallet) => wallet.owner, { nullable: true })
+  @JoinColumn()
+  @Field((type) => Wallet, { nullable: true })
+  wallet?: Wallet;
 
   @BeforeInsert()
   @BeforeUpdate()

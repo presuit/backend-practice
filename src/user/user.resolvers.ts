@@ -1,6 +1,7 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Roles } from 'src/common/auth-roles';
 import { AuthUser } from 'src/common/auth-user';
+import { AddPointInput, AddPointOutput } from './dtos/add-point.dto';
 import { ConfirmVerificationCodeOutput } from './dtos/confirm-verification-code.dto';
 import {
   CreateAccountInput,
@@ -12,7 +13,9 @@ import {
   FindUserByIdOutput,
 } from './dtos/find-user-by-id.dto';
 import { LogInInput, LogInOutput } from './dtos/log-in.dto';
+import { MeOutput } from './dtos/me.dto';
 import { User } from './entities/user.entity';
+import { Wallet } from './entities/wallet.entity';
 import { UserServices } from './user.services';
 
 @Resolver((of) => User)
@@ -54,5 +57,25 @@ export class UserResolvers {
     @Args('code') code: string,
   ): Promise<ConfirmVerificationCodeOutput> {
     return this.userServices.confirmVerificationCode(user, code);
+  }
+
+  @Roles(['Any'])
+  @Query((returns) => MeOutput)
+  me(@AuthUser() user: User): Promise<MeOutput> {
+    return this.userServices.me(user);
+  }
+}
+
+@Resolver((of) => Wallet)
+export class WalletResolvers {
+  constructor(private readonly userServices: UserServices) {}
+
+  @Roles(['Any'])
+  @Mutation((returns) => AddPointOutput)
+  addPoint(
+    @AuthUser() user: User,
+    @Args('input') input: AddPointInput,
+  ): Promise<AddPointOutput> {
+    return this.userServices.addPoint(user, input);
   }
 }

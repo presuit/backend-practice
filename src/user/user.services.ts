@@ -4,6 +4,7 @@ import { JwtServices } from 'src/jwt/jwt.services';
 import { MsgProps } from 'src/sms/sms.interfaces';
 import { SmsServices } from 'src/sms/sms.services';
 import { Repository } from 'typeorm';
+import { AddPointInput, AddPointOutput } from './dtos/add-point.dto';
 import { ConfirmVerificationCodeOutput } from './dtos/confirm-verification-code.dto';
 import {
   CreateAccountInput,
@@ -15,18 +16,39 @@ import {
   FindUserByIdOutput,
 } from './dtos/find-user-by-id.dto';
 import { LogInInput, LogInOutput } from './dtos/log-in.dto';
+import { MeOutput } from './dtos/me.dto';
 import { User } from './entities/user.entity';
 import { Verification } from './entities/verification.entity';
+import { Wallet } from './entities/wallet.entity';
 
 @Injectable()
 export class UserServices {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
+    @InjectRepository(Wallet) private readonly wallets: Repository<Wallet>,
     @InjectRepository(Verification)
     private readonly verifications: Repository<Verification>,
     private readonly jwtServices: JwtServices,
     private readonly SmsServices: SmsServices,
   ) {}
+
+  async me(user: User): Promise<MeOutput> {
+    try {
+      const me = await this.users.findOneOrFail(
+        { id: user.id },
+        { relations: ['wallet'] },
+      );
+      return {
+        ok: true,
+        user: me,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: '로그인한 유저를 찾을 수 없습니다.',
+      };
+    }
+  }
 
   async createAccount({
     email,
@@ -47,6 +69,7 @@ export class UserServices {
       const newVerification = await this.verifications.save(
         this.verifications.create({ user: newUser }),
       );
+      await this.wallets.save(this.wallets.create({ owner: newUser }));
       // const msgObj: MsgProps = {
       //   type: 'SMS',
       //   to: '01031773516',
@@ -185,6 +208,46 @@ export class UserServices {
       return {
         ok: false,
         error: 'Verification code 판별에 실패했습니다.',
+      };
+    }
+  }
+
+  async addPoint(
+    user: User,
+    { point, id: walletId }: AddPointInput,
+  ): Promise<AddPointOutput> {
+    try {
+      const wallet = await this.wallets.findOne({ id: walletId });
+      if (!wallet) {
+        return {
+          ok: false,
+          error: '해당 아이디를 가진 wallet이 없습니다.',
+        };
+      }
+      if (wallet.ownerId !== user.id) {
+        return {
+          ok: false,
+          error:
+            '현재 로그인한 유저의 아이디와 입력으로 들어온 아이디 값이 다릅니다.',
+        };
+      }
+      if (point <= 0) {
+        return {
+          ok: false,
+          error: '충전 될 포인트의 값은 0보다 작을 수 없습니다.',
+        };
+      }
+      const addedPoint = wallet.point + point;
+      await this.wallets.save([
+        {
+          id: walletId,
+          point: addedPoint,
+        },
+      ]);
+    } catch (error) {
+      return {
+        ok: false,
+        error: 'wallet에 포인트를 충전하지 못했습니다.',
       };
     }
   }

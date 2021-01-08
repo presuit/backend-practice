@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -21,6 +21,7 @@ import { JoinRoomInput, JoinRoomOutput } from './dtos/join-room.dto';
 import { isObjectBindingPattern } from 'typescript';
 import { AllRoomsOutput } from './dtos/all-rooms.dto';
 import { AllProductsOuput } from './dtos/all-products.dto';
+import { MsgServices } from 'src/msg/msg.services';
 
 @Injectable()
 export class ProductServices {
@@ -30,6 +31,7 @@ export class ProductServices {
     @InjectRepository(CategoryRepository)
     private readonly categories: CategoryRepository,
     @InjectRepository(Room) private readonly rooms: Repository<Room>,
+    @Inject(MsgServices) private readonly msgServices: MsgServices,
   ) {}
 
   async allProducts(): Promise<AllProductsOuput> {
@@ -183,11 +185,24 @@ export class ProductServices {
           error: '해당 아이디를 가진 product가 존재하지 않습니다.',
         };
       }
+      const productRoom = await this.rooms.findOne({ id: product.roomId });
+      if (!productRoom || productRoom.participants.length <= 1) {
+        return {
+          ok: false,
+          error: '현재 product에 participant가 존재하지 않습니다.',
+        };
+      }
 
       if (buyer.id === owner.id) {
         return {
           ok: false,
           error: '구매자와 판매자가 동일할 수 없습니다.',
+        };
+      }
+      if (product.sellerId !== owner.id) {
+        return {
+          ok: false,
+          error: '당신은 이 product에 접근할 권한이 없습니다.',
         };
       }
       await this.products.save([
@@ -197,6 +212,10 @@ export class ProductServices {
           soldout: true,
         },
       ]);
+      await this.msgServices.createMsgRoom({
+        productId,
+        participants: [owner, buyer],
+      });
       return {
         ok: true,
       };

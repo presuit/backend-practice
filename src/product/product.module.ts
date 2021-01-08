@@ -10,10 +10,12 @@ import {
   RoomResolvers,
 } from './product.resolvers';
 import { ProductServices } from './product.services';
+import { MsgModule } from 'src/msg/msg.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Product, User, CategoryRepository, Room]),
+    MsgModule,
   ],
   providers: [
     ProductResolvers,

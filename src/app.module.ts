@@ -14,6 +14,8 @@ import { Category } from './product/entities/category.entity';
 import { Room } from './product/entities/room.entity';
 import { MsgModule } from './msg/msg.module';
 import { Msg } from './msg/entities/msg.entity';
+import { MsgRoom } from './msg/entities/msg-room.entity';
+import { Wallet } from './user/entities/wallet.entity';
 
 @Module({
   imports: [
@@ -40,7 +42,16 @@ import { Msg } from './msg/entities/msg.entity';
       username: process.env.PG_USERNAME,
       password: process.env.PG_PASSWORD,
       database: process.env.PG_DATABASE,
-      entities: [User, Verification, Product, Category, Room, Msg],
+      entities: [
+        User,
+        Verification,
+        Product,
+        Category,
+        Room,
+        Msg,
+        MsgRoom,
+        Wallet,
+      ],
       synchronize: true,
       logging: true,
     }),

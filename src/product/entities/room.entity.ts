@@ -12,7 +12,6 @@ export class Room extends Common {
   @OneToOne((type) => Product, (product) => product.room, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
   product: Product;
 
   @Field((type) => [User], { nullable: true })
