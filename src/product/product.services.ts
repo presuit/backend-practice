@@ -18,7 +18,6 @@ import {
   FindCategoryBySlugOutput,
 } from './dtos/find-category-by-slug.dto';
 import { JoinRoomInput, JoinRoomOutput } from './dtos/join-room.dto';
-import { isObjectBindingPattern } from 'typescript';
 import { AllRoomsOutput } from './dtos/all-rooms.dto';
 import { AllProductsOuput } from './dtos/all-products.dto';
 import { MsgServices } from 'src/msg/msg.services';
@@ -290,20 +289,8 @@ export class ProductServices {
         };
       }
       const index = Math.floor(Math.random() * participants.length);
-      console.log(index);
       const buyer = participants[index];
-      const { ok: soldOutOK, error: soldOutError } = await this.soldout({
-        buyerId: buyer.id,
-        productId: product.id,
-      });
-
-      if (!soldOutOK && soldOutError) {
-        return {
-          ok: soldOutOK,
-          error: soldOutError,
-        };
-      }
-
+      console.log(participants);
       return {
         ok: true,
         buyer,
@@ -456,6 +443,7 @@ export class ProductServices {
         canIRefund: false,
         purchaseDate: new Date(),
         productId: product.id,
+        price,
       };
       if (wallet.histories) {
         histories = [...wallet.histories, newWalletHistory];

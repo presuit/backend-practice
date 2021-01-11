@@ -40,6 +40,12 @@ export class MsgServices {
           error: '해당 msgRoom에 연결 되야할 product가 존재하지 않습니다.',
         };
       }
+      if (product.soldout === false) {
+        return {
+          ok: false,
+          error: 'soldout되지 않은 product에선 msgRoom을 만들 수 없습니다.',
+        };
+      }
       if (participants.length <= 1) {
         return {
           ok: false,

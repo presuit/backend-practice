@@ -16,8 +16,6 @@ import {
 } from './dtos/find-category-by-slug.dto';
 import { FindProductByIdOutput } from './dtos/find-product-by-id.dto';
 import { JoinRoomInput, JoinRoomOutput } from './dtos/join-room.dto';
-import { PickUpBuyerInput, PickUpBuyerOutput } from './dtos/pick-up-buyer.dto';
-import { SoldoutInput, SoldoutOutput } from './dtos/soldout.dto';
 import { Category } from './entities/category.entity';
 import { Product } from './entities/product.entity';
 import { Room } from './entities/room.entity';

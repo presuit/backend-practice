@@ -43,6 +43,7 @@ export class UserServices {
         user: me,
       };
     } catch (error) {
+      console.log(error);
       return {
         ok: false,
         error: '로그인한 유저를 찾을 수 없습니다.',
@@ -158,7 +159,7 @@ export class UserServices {
     userId,
   }: FindUserByIdInput): Promise<FindUserByIdOutput> {
     try {
-      const user = await this.users.findOne(userId);
+      const user = await this.users.findOne({ id: userId });
       return {
         ok: true,
         user,

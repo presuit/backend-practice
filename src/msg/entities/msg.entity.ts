@@ -20,12 +20,12 @@ export class Msg extends Common {
   msgText: string;
 
   @Field((type) => User)
-  @OneToOne((type) => User, { onDelete: 'CASCADE' })
+  @OneToOne((type) => User)
   @JoinColumn()
   from: User;
 
   @Field((type) => User)
-  @OneToOne((type) => User, { onDelete: 'CASCADE' })
+  @OneToOne((type) => User)
   @JoinColumn()
   to: User;
 

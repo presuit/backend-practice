@@ -65,7 +65,6 @@ export class User extends Common {
   msgRoomsId: number[];
 
   @OneToOne((type) => Wallet, (wallet) => wallet.owner, { nullable: true })
-  @JoinColumn()
   @Field((type) => Wallet, { nullable: true })
   wallet?: Wallet;
 

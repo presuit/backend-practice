@@ -1,8 +1,7 @@
 import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
-import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Column, Entity, OneToMany, OneToOne, RelationId } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, RelationId } from 'typeorm';
 
 @InputType('WalletEntityHistoryInput', { isAbstract: true })
 @ObjectType()
@@ -15,6 +14,9 @@ export class WalletHistory {
 
   @Field((type) => Boolean)
   canIRefund: boolean;
+
+  @Field((type) => Int)
+  price: number;
 }
 
 @InputType('WalletEntityInput', { isAbstract: true })
@@ -27,6 +29,7 @@ export class Wallet extends Common {
 
   @Field((type) => User)
   @OneToOne((type) => User, (user) => user.wallet, { onDelete: 'CASCADE' })
+  @JoinColumn()
   owner: User;
 
   @RelationId((wallet: Wallet) => wallet.owner)
