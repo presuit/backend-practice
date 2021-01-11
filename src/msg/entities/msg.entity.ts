@@ -1,7 +1,14 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToOne,
+  OneToOne,
+} from 'typeorm';
 import { MsgRoom } from './msg-room.entity';
 
 @InputType('MsgEntityInput', { isAbstract: true })
@@ -13,12 +20,12 @@ export class Msg extends Common {
   msgText: string;
 
   @Field((type) => User)
-  @OneToOne((type) => User)
+  @OneToOne((type) => User, { onDelete: 'CASCADE' })
   @JoinColumn()
   from: User;
 
   @Field((type) => User)
-  @OneToOne((type) => User)
+  @OneToOne((type) => User, { onDelete: 'CASCADE' })
   @JoinColumn()
   to: User;
 
@@ -26,5 +33,6 @@ export class Msg extends Common {
   @ManyToOne((type) => MsgRoom, (msgRoom) => msgRoom.msgs, {
     onDelete: 'CASCADE',
   })
+  @JoinTable()
   msgRoom: MsgRoom;
 }

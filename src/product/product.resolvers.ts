@@ -16,6 +16,7 @@ import {
 } from './dtos/find-category-by-slug.dto';
 import { FindProductByIdOutput } from './dtos/find-product-by-id.dto';
 import { JoinRoomInput, JoinRoomOutput } from './dtos/join-room.dto';
+import { PickUpBuyerInput, PickUpBuyerOutput } from './dtos/pick-up-buyer.dto';
 import { SoldoutInput, SoldoutOutput } from './dtos/soldout.dto';
 import { Category } from './entities/category.entity';
 import { Product } from './entities/product.entity';
@@ -26,9 +27,9 @@ import { ProductServices } from './product.services';
 export class ProductResolvers {
   constructor(private readonly productServices: ProductServices) {}
 
-  @Roles(["Any"])
-  @Query(returns =>AllProductsOuput)
-  allProducts():Promise<AllProductsOuput>{
+  @Roles(['Any'])
+  @Query((returns) => AllProductsOuput)
+  allProducts(): Promise<AllProductsOuput> {
     return this.productServices.allProducts();
   }
 
@@ -57,14 +58,25 @@ export class ProductResolvers {
   ): Promise<EditProductOutput> {
     return this.productServices.editProduct(user, input);
   }
+}
+
+@Resolver((of) => Room)
+export class RoomResolvers {
+  constructor(private readonly productServices: ProductServices) {}
 
   @Roles(['Any'])
-  @Mutation((returns) => SoldoutOutput)
-  soldout(
-    @AuthUser() owner: User,
-    @Args('input') input: SoldoutInput,
-  ): Promise<SoldoutOutput> {
-    return this.productServices.soldout(owner, input);
+  @Query((returns) => AllRoomsOutput)
+  allRooms(@AuthUser() user: User): Promise<AllRoomsOutput> {
+    return this.productServices.allRooms(user);
+  }
+
+  @Roles(['Any'])
+  @Mutation((returns) => JoinRoomOutput)
+  joinRoom(
+    @AuthUser() user: User,
+    @Args('input') input: JoinRoomInput,
+  ): Promise<JoinRoomOutput> {
+    return this.productServices.joinRoom(user, input);
   }
 }
 
@@ -84,25 +96,5 @@ export class CategoryResolvers {
     @Args('input') input: FindCategoryBySlugInput,
   ): Promise<FindCategoryBySlugOutput> {
     return this.productServices.findCategoryBySlug(input);
-  }
-}
-
-@Resolver((of) => Room)
-export class RoomResolvers {
-  constructor(private readonly productServices: ProductServices) {}
-
-  @Roles(['Any'])
-  @Query((returns) => AllRoomsOutput)
-  allRooms(): Promise<AllRoomsOutput> {
-    return this.productServices.allRooms();
-  }
-
-  @Roles(['Any'])
-  @Mutation((returns) => JoinRoomOutput)
-  joinRoom(
-    @AuthUser() user: User,
-    @Args('input') input: JoinRoomInput,
-  ): Promise<JoinRoomOutput> {
-    return this.productServices.joinRoom(user, input);
   }
 }

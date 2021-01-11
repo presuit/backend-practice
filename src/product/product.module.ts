@@ -11,10 +11,11 @@ import {
 } from './product.resolvers';
 import { ProductServices } from './product.services';
 import { MsgModule } from 'src/msg/msg.module';
+import { Wallet } from 'src/user/entities/wallet.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Product, User, CategoryRepository, Room]),
+    TypeOrmModule.forFeature([Product, User, CategoryRepository, Room, Wallet]),
     MsgModule,
   ],
   providers: [

@@ -8,7 +8,13 @@ export class JoinRoomInput {
 
   @Field((type) => Int)
   productId: number;
+
+  @Field((type) => Int)
+  price: number;
 }
 
 @ObjectType()
-export class JoinRoomOutput extends CommonOutput {}
+export class JoinRoomOutput extends CommonOutput {
+  @Field((type) => Boolean, { defaultValue: false })
+  soldout?: boolean;
+}

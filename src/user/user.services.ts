@@ -244,6 +244,9 @@ export class UserServices {
           point: addedPoint,
         },
       ]);
+      return {
+        ok: true,
+      };
     } catch (error) {
       return {
         ok: false,

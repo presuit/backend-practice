@@ -2,7 +2,14 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Column, Entity, ManyToMany, OneToMany, OneToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToMany,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { Msg } from './msg.entity';
 
 @InputType('MsgRoomEntityInput', { isAbstract: true })
@@ -21,9 +28,10 @@ export class MsgRoom extends Common {
   @Column({ default: false })
   deleted: boolean;
 
+  @Field((type) => Product)
   @OneToOne((type) => Product, (product) => product.msgRoom, {
     onDelete: 'CASCADE',
   })
-  @Field((type) => Product)
+  @JoinColumn()
   product: Product;
 }

@@ -51,6 +51,9 @@ export class User extends Common {
   @Field((type) => [Room], { nullable: true })
   rooms?: Room[];
 
+  @RelationId((user: User) => user.rooms)
+  roomIds?: number[];
+
   @ManyToMany((type) => MsgRoom, (msgRoom) => msgRoom.participants, {
     nullable: true,
   })
@@ -65,6 +68,9 @@ export class User extends Common {
   @JoinColumn()
   @Field((type) => Wallet, { nullable: true })
   wallet?: Wallet;
+
+  @RelationId((user: User) => user.wallet)
+  walletId: number;
 
   @BeforeInsert()
   @BeforeUpdate()

@@ -80,7 +80,6 @@ export class Product extends Common {
   @OneToOne((type) => Room, (room) => room.product, {
     nullable: true,
   })
-  @JoinColumn()
   room?: Room;
 
   @RelationId((product: Product) => product.room)

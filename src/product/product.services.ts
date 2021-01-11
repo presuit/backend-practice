@@ -22,6 +22,8 @@ import { isObjectBindingPattern } from 'typescript';
 import { AllRoomsOutput } from './dtos/all-rooms.dto';
 import { AllProductsOuput } from './dtos/all-products.dto';
 import { MsgServices } from 'src/msg/msg.services';
+import { Wallet, WalletHistory } from 'src/user/entities/wallet.entity';
+import { PickUpBuyerInput, PickUpBuyerOutput } from './dtos/pick-up-buyer.dto';
 
 @Injectable()
 export class ProductServices {
@@ -31,6 +33,7 @@ export class ProductServices {
     @InjectRepository(CategoryRepository)
     private readonly categories: CategoryRepository,
     @InjectRepository(Room) private readonly rooms: Repository<Room>,
+    @InjectRepository(Wallet) private readonly wallets: Repository<Wallet>,
     @Inject(MsgServices) private readonly msgServices: MsgServices,
   ) {}
 
@@ -166,13 +169,15 @@ export class ProductServices {
     }
   }
 
-  async soldout(
-    owner: User,
-    { buyerId, productId }: SoldoutInput,
-  ): Promise<SoldoutOutput> {
+  async soldout({ buyerId, productId }: SoldoutInput): Promise<SoldoutOutput> {
     try {
       const buyer = await this.users.findOne({ id: buyerId });
       const product = await this.products.findOne({ id: productId });
+      const productRoom = await this.rooms.findOne(
+        { id: product.roomId },
+        { relations: ['participants'] },
+      );
+      const seller = await this.users.findOne({ id: product.sellerId });
       if (!buyer) {
         return {
           ok: false,
@@ -185,26 +190,29 @@ export class ProductServices {
           error: '해당 아이디를 가진 product가 존재하지 않습니다.',
         };
       }
-      const productRoom = await this.rooms.findOne({ id: product.roomId });
-      if (!productRoom || productRoom.participants.length <= 1) {
+      if (!productRoom) {
         return {
           ok: false,
-          error: '현재 product에 participant가 존재하지 않습니다.',
+          error: 'product에 해당하는 room이 존재하지 않습니다.',
+        };
+      }
+      if (!seller) {
+        return {
+          ok: false,
+          error: '해당 product에 seller가 존재하지 않습니다.',
         };
       }
 
-      if (buyer.id === owner.id) {
+      const participantValidate = productRoom.participants.find(
+        (participant) => participant.id === buyerId,
+      );
+      if (!participantValidate) {
         return {
           ok: false,
-          error: '구매자와 판매자가 동일할 수 없습니다.',
+          error: '해당 productRoom에 buyerId를 가진 user가 없습니다.',
         };
       }
-      if (product.sellerId !== owner.id) {
-        return {
-          ok: false,
-          error: '당신은 이 product에 접근할 권한이 없습니다.',
-        };
-      }
+
       await this.products.save([
         {
           id: productId,
@@ -212,10 +220,22 @@ export class ProductServices {
           soldout: true,
         },
       ]);
-      await this.msgServices.createMsgRoom({
+
+      const {
+        ok: createMsgRoomOk,
+        error: createMsgRoomError,
+      } = await this.msgServices.createMsgRoom({
         productId,
-        participants: [owner, buyer],
+        participants: [seller, buyer],
       });
+
+      if (!createMsgRoomOk && createMsgRoomError) {
+        return {
+          ok: createMsgRoomOk,
+          error: createMsgRoomError,
+        };
+      }
+
       return {
         ok: true,
       };
@@ -223,6 +243,75 @@ export class ProductServices {
       return {
         ok: false,
         error: 'soldout 메소드가 정상적으로 작동하지 못했습니다.',
+      };
+    }
+  }
+
+  async pickUpBuyer({
+    productId,
+    id: roomId,
+  }: PickUpBuyerInput): Promise<PickUpBuyerOutput> {
+    try {
+      const product = await this.products.findOne({ id: productId });
+      const productRoom = await this.rooms.findOne(
+        { id: roomId },
+        { relations: ['participants'] },
+      );
+      const participants = productRoom.participants;
+      if (!product) {
+        return {
+          ok: false,
+          error: '해당 아이디를 가진 product가 존재하지 않습니다.',
+        };
+      }
+      if (!productRoom) {
+        return {
+          ok: false,
+          error: '해당 아이디를 가진 product room이 존재하지 않습니다.',
+        };
+      }
+      if (product.roomId !== roomId) {
+        return {
+          ok: false,
+          error: '입력된 product의 room과 입력된 room이 다릅니다.',
+        };
+      }
+      if (!participants || participants.length < 2) {
+        return {
+          ok: false,
+          error:
+            'product room에는 2명이상의 participant들이 존재해야 추첨이 가능합니다.',
+        };
+      }
+      if (product.savedAmount < product.price) {
+        return {
+          ok: false,
+          error: '해당 product에 price만큼의 point가 모이지 않았습니다.',
+        };
+      }
+      const index = Math.floor(Math.random() * participants.length);
+      console.log(index);
+      const buyer = participants[index];
+      const { ok: soldOutOK, error: soldOutError } = await this.soldout({
+        buyerId: buyer.id,
+        productId: product.id,
+      });
+
+      if (!soldOutOK && soldOutError) {
+        return {
+          ok: soldOutOK,
+          error: soldOutError,
+        };
+      }
+
+      return {
+        ok: true,
+        buyer,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: 'buyer를 선택하지 못했습니다.',
       };
     }
   }
@@ -267,14 +356,18 @@ export class ProductServices {
 
   // Room Services
 
-  async allRooms(): Promise<AllRoomsOutput> {
+  async allRooms(user: User): Promise<AllRoomsOutput> {
     try {
-      const rooms = await this.rooms.find();
-      if (!rooms) {
-        return {
-          ok: false,
-          error: 'room이 존재하지 않습니다.',
-        };
+      const rooms: Room[] = [];
+      for (const roomId of user.roomIds) {
+        const room = await this.rooms.findOne({ id: roomId });
+        if (!room) {
+          return {
+            ok: false,
+            error: 'room들을 불러오는데 실패했습니다.',
+          };
+        }
+        rooms.push(room);
       }
       return {
         ok: true,
@@ -290,7 +383,7 @@ export class ProductServices {
 
   async joinRoom(
     user: User,
-    { productId, userId }: JoinRoomInput,
+    { productId, userId, price }: JoinRoomInput,
   ): Promise<JoinRoomOutput> {
     try {
       const participant = await this.users.findOne({ id: userId });
@@ -299,6 +392,7 @@ export class ProductServices {
         { id: product.roomId },
         { relations: ['participants'] },
       );
+      const wallet = await this.wallets.findOne({ id: user.walletId });
       if (!participant) {
         return {
           ok: false,
@@ -315,6 +409,18 @@ export class ProductServices {
         return {
           ok: false,
           error: '해당 아이디를 가진 room이 존재하지 않습니다.',
+        };
+      }
+      if (!wallet) {
+        return {
+          ok: false,
+          error: '해당 유저의 wallet을 찾지 못했습니다.',
+        };
+      }
+      if (product.soldout === true) {
+        return {
+          ok: false,
+          error: '이미 판매된 product의 room에 입장할 수 없습니다',
         };
       }
       // 로그인한 유저의 아이디와 input으로 들어온 유저의 아이디가 다른경우
@@ -338,14 +444,80 @@ export class ProductServices {
           error: '이미 이 room에 참여하고 있습니다.',
         };
       }
+      if (wallet.point < price) {
+        return {
+          ok: false,
+          error:
+            '해당 유저의 wallet에는 price를 처리할 만큼의 point가 없습니다.',
+        };
+      }
+      let histories: WalletHistory[];
+      const newWalletHistory: WalletHistory = {
+        canIRefund: false,
+        purchaseDate: new Date(),
+        productId: product.id,
+      };
+      if (wallet.histories) {
+        histories = [...wallet.histories, newWalletHistory];
+      } else {
+        histories = [newWalletHistory];
+      }
+      await this.wallets.save([
+        {
+          id: wallet.id,
+          point: wallet.point - price,
+          histories,
+        },
+      ]);
+      const savedAmount = product.savedAmount + price;
+      await this.products.save([
+        {
+          id: product.id,
+          savedAmount,
+        },
+      ]);
       await this.rooms.save([
         {
           id: room.id,
           participants: [...room.participants, participant],
         },
       ]);
-      return { ok: true };
+      if (savedAmount >= product.price) {
+        // 일단 모금액이 충분히 모이면 buyer를 뽑아내는 메소드 작동(pickUpBuyer)
+        const {
+          ok: pickUpBuyerOk,
+          error: pickUpBuyerError,
+          buyer,
+        } = await this.pickUpBuyer({
+          id: product.roomId,
+          productId: product.id,
+        });
+        if (!pickUpBuyerOk && pickUpBuyerError) {
+          return {
+            ok: pickUpBuyerOk,
+            error: pickUpBuyerError,
+          };
+        }
+        // 에러없이 buyer가 리턴 되었으면 buyer로 soldout 메소드 실행
+        if (buyer) {
+          const { ok: soldOutOk, error: soldOutError } = await this.soldout({
+            buyerId: buyer.id,
+            productId: product.id,
+          });
+          if (!soldOutOk && soldOutError) {
+            return {
+              ok: soldOutOk,
+              error: soldOutError,
+            };
+          }
+          // 에러없이 완벽하게 동작하면 joinRoom에서는 리턴으로 ok 말고 soldout 됬는지 안됬는지를 판별해주는 boolean값 리턴
+          return { ok: true, soldout: true };
+        }
+      }
+      // 아직 모금액에 도달하지 못했다면 soldout은 false
+      return { ok: true, soldout: false };
     } catch (error) {
+      console.log(error);
       return {
         ok: false,
         error: 'user를 room에 포함시키지 못했습니다.',
