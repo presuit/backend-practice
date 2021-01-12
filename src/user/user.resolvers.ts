@@ -2,7 +2,10 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Roles } from 'src/common/auth-roles';
 import { AuthUser } from 'src/common/auth-user';
 import { AddPointInput, AddPointOutput } from './dtos/add-point.dto';
-import { ConfirmVerificationCodeOutput } from './dtos/confirm-verification-code.dto';
+import {
+  ConfirmVerificationCodeInput,
+  ConfirmVerificationCodeOutput,
+} from './dtos/confirm-verification-code.dto';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -54,9 +57,9 @@ export class UserResolvers {
   @Mutation((returns) => ConfirmVerificationCodeOutput)
   confirmVerificationCode(
     @AuthUser() user: User,
-    @Args('code') code: string,
+    @Args('input') input: ConfirmVerificationCodeInput,
   ): Promise<ConfirmVerificationCodeOutput> {
-    return this.userServices.confirmVerificationCode(user, code);
+    return this.userServices.confirmVerificationCode(user, input);
   }
 
   @Roles(['Any'])

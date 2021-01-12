@@ -5,7 +5,10 @@ import { MsgProps } from 'src/sms/sms.interfaces';
 import { SmsServices } from 'src/sms/sms.services';
 import { Repository } from 'typeorm';
 import { AddPointInput, AddPointOutput } from './dtos/add-point.dto';
-import { ConfirmVerificationCodeOutput } from './dtos/confirm-verification-code.dto';
+import {
+  ConfirmVerificationCodeInput,
+  ConfirmVerificationCodeOutput,
+} from './dtos/confirm-verification-code.dto';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -174,7 +177,7 @@ export class UserServices {
 
   async confirmVerificationCode(
     user: User,
-    code: string,
+    { code }: ConfirmVerificationCodeInput,
   ): Promise<ConfirmVerificationCodeOutput> {
     try {
       if (user.isVerified === true) {
@@ -203,6 +206,7 @@ export class UserServices {
       await this.users.save(user);
       return {
         ok: true,
+        userId: user.id,
       };
     } catch (error) {
       console.log(error);
