@@ -19,7 +19,7 @@ import {
 } from './dtos/find-category-by-slug.dto';
 import { JoinRoomInput, JoinRoomOutput } from './dtos/join-room.dto';
 import { AllRoomsOutput } from './dtos/all-rooms.dto';
-import { AllProductsOuput } from './dtos/all-products.dto';
+import { AllProductsInput, AllProductsOuput } from './dtos/all-products.dto';
 import { MsgServices } from 'src/msg/msg.services';
 import { Wallet, WalletHistory } from 'src/user/entities/wallet.entity';
 import { PickUpBuyerInput, PickUpBuyerOutput } from './dtos/pick-up-buyer.dto';
@@ -36,18 +36,39 @@ export class ProductServices {
     @Inject(MsgServices) private readonly msgServices: MsgServices,
   ) {}
 
-  async allProducts(): Promise<AllProductsOuput> {
+  async allProducts(
+    user: User,
+    { page }: AllProductsInput,
+  ): Promise<AllProductsOuput> {
     try {
-      const products = await this.products.find();
+      let [products, totalResults] = await this.products.findAndCount({
+        where: {
+          soldout: false,
+        },
+        relations: ['category'],
+        skip: (page - 1) * 12,
+        take: 12,
+        order: {
+          id: 'DESC',
+        },
+      });
       if (!products) {
-        return { ok: false, error: 'products가 존재하지 않습니다.' };
+        return {
+          ok: false,
+          error: 'products가 존재하지 않습니다.',
+        };
       }
       return {
         ok: true,
         products,
+        totalResults,
+        totalPages: Math.ceil(totalResults / 12),
       };
     } catch (error) {
-      return { ok: false, error: 'products가 존재하지 않습니다.' };
+      return {
+        ok: false,
+        error: 'products가 존재하지 않습니다.',
+      };
     }
   }
 

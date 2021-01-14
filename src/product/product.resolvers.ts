@@ -3,7 +3,7 @@ import { Roles } from 'src/common/auth-roles';
 import { AuthUser } from 'src/common/auth-user';
 import { User } from 'src/user/entities/user.entity';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
-import { AllProductsOuput } from './dtos/all-products.dto';
+import { AllProductsInput, AllProductsOuput } from './dtos/all-products.dto';
 import { AllRoomsOutput } from './dtos/all-rooms.dto';
 import {
   CreateProductInput,
@@ -27,8 +27,11 @@ export class ProductResolvers {
 
   @Roles(['Any'])
   @Query((returns) => AllProductsOuput)
-  allProducts(): Promise<AllProductsOuput> {
-    return this.productServices.allProducts();
+  allProducts(
+    @AuthUser() user: User,
+    @Args('input') input: AllProductsInput,
+  ): Promise<AllProductsOuput> {
+    return this.productServices.allProducts(user, input);
   }
 
   @Roles(['Any'])

@@ -12,6 +12,10 @@ export class JwtServices {
   }
 
   decodeJwtToken(token: string): object | string {
-    return jwt.verify(token, this.options.secret);
+    try {
+      return jwt.verify(token, this.options.secret);
+    } catch (error) {
+      return { error };
+    }
   }
 }

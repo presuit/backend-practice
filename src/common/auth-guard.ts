@@ -18,19 +18,28 @@ export class AuthGuard implements CanActivate {
       return true;
     }
     const gqlCtx = GqlExecutionContext.create(context).getContext();
-    if (gqlCtx.token) {
-      const decoded = this.jwtServices.decodeJwtToken(gqlCtx.token);
-      if (decoded) {
-        const userObj = await this.userServices.findUserById({
-          userId: decoded['id'],
-        });
-        const user = userObj.user;
-        gqlCtx.user = user;
-        return true;
+    try {
+      if (gqlCtx.token) {
+        const decoded = this.jwtServices.decodeJwtToken(gqlCtx.token);
+        if (decoded['error']) {
+          return false;
+        }
+        if (decoded) {
+          const { ok, error, user } = await this.userServices.findUserById({
+            userId: decoded['id'],
+          });
+          if (!ok && error) {
+            return false;
+          }
+          gqlCtx.user = user;
+          return true;
+        } else {
+          return false;
+        }
       } else {
         return false;
       }
-    } else {
+    } catch (error) {
       return false;
     }
   }
