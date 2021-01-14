@@ -5,10 +5,8 @@ import {
   BeforeUpdate,
   Column,
   Entity,
-  JoinColumn,
   JoinTable,
   ManyToMany,
-  ManyToOne,
   OneToMany,
   OneToOne,
   RelationId,
@@ -38,6 +36,10 @@ export class User extends Common {
   @Column()
   @Field((type) => String)
   username: string;
+
+  @Column({ nullable: true })
+  @Field((type) => String, { nullable: true })
+  avatarImg?: string;
 
   @OneToMany((type) => Product, (product) => product.seller, { nullable: true })
   @Field((type) => [Product], { nullable: true })
