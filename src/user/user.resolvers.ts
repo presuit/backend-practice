@@ -15,8 +15,13 @@ import {
   FindUserByIdInput,
   FindUserByIdOutput,
 } from './dtos/find-user-by-id.dto';
+import {
+  FindWalletByUserIdInput,
+  FindWalletByUserIdOutput,
+} from './dtos/find-wallet-By-userId.dto';
 import { LogInInput, LogInOutput } from './dtos/log-in.dto';
 import { MeOutput } from './dtos/me.dto';
+import { MyWalletOutput } from './dtos/my-wallett.dto';
 import { User } from './entities/user.entity';
 import { Wallet } from './entities/wallet.entity';
 import { UserServices } from './user.services';
@@ -72,6 +77,21 @@ export class UserResolvers {
 @Resolver((of) => Wallet)
 export class WalletResolvers {
   constructor(private readonly userServices: UserServices) {}
+
+  @Roles(['Any'])
+  @Query((returns) => MyWalletOutput)
+  myWallet(@AuthUser() user: User): Promise<MyWalletOutput> {
+    return this.userServices.myWallet(user);
+  }
+
+  @Roles(['Any'])
+  @Query((returns) => FindWalletByUserIdOutput)
+  findWalletByUserId(
+    @AuthUser() user: User,
+    @Args('input') input: FindWalletByUserIdInput,
+  ): Promise<FindWalletByUserIdOutput> {
+    return this.userServices.findWalletByUserId(user, input);
+  }
 
   @Roles(['Any'])
   @Mutation((returns) => AddPointOutput)

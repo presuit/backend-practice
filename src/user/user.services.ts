@@ -18,8 +18,13 @@ import {
   FindUserByIdInput,
   FindUserByIdOutput,
 } from './dtos/find-user-by-id.dto';
+import {
+  FindWalletByUserIdInput,
+  FindWalletByUserIdOutput,
+} from './dtos/find-wallet-By-userId.dto';
 import { LogInInput, LogInOutput } from './dtos/log-in.dto';
 import { MeOutput } from './dtos/me.dto';
+import { MyWalletOutput } from './dtos/my-wallett.dto';
 import { User } from './entities/user.entity';
 import { Verification } from './entities/verification.entity';
 import { Wallet } from './entities/wallet.entity';
@@ -162,7 +167,7 @@ export class UserServices {
     userId,
   }: FindUserByIdInput): Promise<FindUserByIdOutput> {
     try {
-      const user = await this.users.findOne({ id: userId });
+      const user = await this.users.findOneOrFail({ id: userId });
       return {
         ok: true,
         user,
@@ -256,6 +261,68 @@ export class UserServices {
       return {
         ok: false,
         error: 'wallet에 포인트를 충전하지 못했습니다.',
+      };
+    }
+  }
+
+  async findWalletByUserId(
+    user: User,
+    { userId }: FindWalletByUserIdInput,
+  ): Promise<FindWalletByUserIdOutput> {
+    try {
+      const { ok, error, user: owner } = await this.findUserById({ userId });
+      if (error) {
+        return {
+          ok,
+          error,
+        };
+      }
+      if (owner.id !== user.id) {
+        return {
+          ok: false,
+          error: '로그인 한 유저와 입력된 유저가 다릅니다.',
+        };
+      }
+      const wallet = await this.wallets.findOne({ id: owner.walletId });
+      if (!wallet) {
+        return {
+          ok: false,
+          error: '해당 유저의 wallet이 존재하지 않습니다.',
+        };
+      }
+      console.log(wallet);
+      return {
+        ok: true,
+        wallet,
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        ok: false,
+        error: '해당 User의 wallet을 찾지 못했습니다.',
+      };
+    }
+  }
+
+  async myWallet(user: User): Promise<MyWalletOutput> {
+    try {
+      const { ok, error, wallet } = await this.findWalletByUserId(user, {
+        userId: user.id,
+      });
+      if (!ok && error) {
+        return {
+          ok,
+          error,
+        };
+      }
+      return {
+        ok: true,
+        wallet,
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        error: '해당 user의 wallet을 찾지 못했습니다.',
       };
     }
   }

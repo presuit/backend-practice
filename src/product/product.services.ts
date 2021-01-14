@@ -462,7 +462,7 @@ export class ProductServices {
       let histories: WalletHistory[];
       const newWalletHistory: WalletHistory = {
         canIRefund: false,
-        purchaseDate: new Date(),
+        purchaseDate: Date.now(),
         productId: product.id,
         price,
       };

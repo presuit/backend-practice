@@ -7,16 +7,16 @@ import { Column, Entity, JoinColumn, OneToOne, RelationId } from 'typeorm';
 @ObjectType()
 export class WalletHistory {
   @Field((type) => Int)
-  productId: number;
+  productId?: number;
 
-  @Field((type) => Date)
-  purchaseDate: Date;
+  @Field((type) => Number)
+  purchaseDate?: number;
 
   @Field((type) => Boolean)
-  canIRefund: boolean;
+  canIRefund?: boolean;
 
   @Field((type) => Int)
-  price: number;
+  price?: number;
 }
 
 @InputType('WalletEntityInput', { isAbstract: true })
