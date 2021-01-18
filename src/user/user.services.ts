@@ -290,7 +290,7 @@ export class UserServices {
           error: '해당 유저의 wallet이 존재하지 않습니다.',
         };
       }
-      console.log(wallet);
+      wallet.histories.sort((a, b) => b.purchaseDate - a.purchaseDate);
       return {
         ok: true,
         wallet,

@@ -74,7 +74,14 @@ export class ProductServices {
 
   async createProduct(
     user: User,
-    { categoryName, name, price, bigImg, detailImgs }: CreateProductInput,
+    {
+      categoryName,
+      name,
+      price,
+      bigImg,
+      detailImgs,
+      description,
+    }: CreateProductInput,
   ): Promise<CreateProductOutput> {
     try {
       const product = await this.products.save(
@@ -83,6 +90,7 @@ export class ProductServices {
           price,
           seller: user,
           bigImg,
+          description,
         }),
       );
 
@@ -114,7 +122,10 @@ export class ProductServices {
 
   async findProductById(productId: number): Promise<FindProductByIdOutput> {
     try {
-      const product = await this.products.findOneOrFail({ id: productId });
+      const product = await this.products.findOneOrFail(
+        { id: productId },
+        { relations: ['category'] },
+      );
       return {
         ok: true,
         product,
@@ -129,7 +140,14 @@ export class ProductServices {
 
   async editProduct(
     user: User,
-    { productId, detailImgSrcs, categoryName, bigImg, name }: EditProductInput,
+    {
+      productId,
+      detailImgSrcs,
+      categoryName,
+      bigImg,
+      name,
+      description,
+    }: EditProductInput,
   ): Promise<EditProductOutput> {
     try {
       const product = await this.products.findOne(
@@ -176,6 +194,7 @@ export class ProductServices {
           ...product,
           ...(name && { name }),
           ...(bigImg && { bigImg }),
+          ...(description && { description }),
         },
       ]);
       return {

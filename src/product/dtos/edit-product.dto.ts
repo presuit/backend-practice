@@ -10,7 +10,7 @@ import { Product } from '../entities/product.entity';
 
 @InputType()
 export class EditProductInput extends PartialType(
-  PickType(Product, ['bigImg', 'name']),
+  PickType(Product, ['bigImg', 'name', 'description']),
 ) {
   @Field((type) => Number)
   productId: number;

@@ -27,6 +27,11 @@ export class Product extends Common {
   @Column()
   price: number;
 
+  //  상품에 대한 설명
+  @Field((type) => String, { nullable: true })
+  @Column({ nullable: true })
+  description?: string;
+
   //   셀러가 올린 price에 대해 얼마나 모였는지 확인하는 가격변수
   @Field((type) => Int, { defaultValue: 0 })
   @Column({ default: 0 })

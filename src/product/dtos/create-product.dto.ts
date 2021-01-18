@@ -12,6 +12,9 @@ export class CreateProductInput extends PickType(Product, ['name', 'price']) {
 
   @Field((type) => String)
   categoryName: string;
+
+  @Field((type) => String, { nullable: true })
+  description?: string;
 }
 
 @ObjectType()
