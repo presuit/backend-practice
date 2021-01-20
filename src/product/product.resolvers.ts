@@ -89,8 +89,13 @@ export class RoomResolvers {
   }
 
   @ResolveField((type) => Int)
-  participantCounts(@Parent() room: Room): Promise<number> {
+  participantCounts(@Parent() room: Room): number {
     return this.productServices.participantCounts(room);
+  }
+
+  @ResolveField((type) => Boolean)
+  isMeInRoom(@Parent() room: Room, @AuthUser() user: User): boolean {
+    return this.productServices.isMeInRoom(room, user.id);
   }
 }
 

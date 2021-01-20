@@ -553,11 +553,21 @@ export class ProductServices {
     }
   }
 
-  async participantCounts(room: Room): Promise<number> {
+  participantCounts(room: Room): number {
     try {
       return room.participants.length;
     } catch (error) {
       return null;
+    }
+  }
+
+  isMeInRoom(room: Room, userId: number): boolean {
+    try {
+      return Boolean(
+        room.participants.find((participant) => participant.id === userId),
+      );
+    } catch (error) {
+      return false;
     }
   }
 }
