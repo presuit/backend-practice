@@ -46,8 +46,8 @@ export class ProductServices {
           soldout: false,
         },
         relations: ['category'],
-        skip: (page - 1) * 12,
-        take: 12,
+        skip: (page - 1) * 8,
+        take: 8,
         order: {
           id: 'DESC',
         },
@@ -62,7 +62,7 @@ export class ProductServices {
         ok: true,
         products,
         totalResults,
-        totalPages: Math.ceil(totalResults / 12),
+        totalPages: Math.ceil(totalResults / 8),
       };
     } catch (error) {
       return {
@@ -550,6 +550,14 @@ export class ProductServices {
         ok: false,
         error: 'user를 room에 포함시키지 못했습니다.',
       };
+    }
+  }
+
+  async participantCounts(room: Room): Promise<number> {
+    try {
+      return room.participants.length;
+    } catch (error) {
+      return null;
     }
   }
 }

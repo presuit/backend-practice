@@ -1,4 +1,11 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import {
+  Field,
+  InputType,
+  Int,
+  ObjectType,
+  Parent,
+  ResolveField,
+} from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -23,7 +30,10 @@ export class Room extends Common {
   product: Product;
 
   @Field((type) => [User], { nullable: true })
-  @ManyToMany((type) => User, (user) => user.rooms, { nullable: true })
+  @ManyToMany((type) => User, (user) => user.rooms, {
+    nullable: true,
+    eager: true,
+  })
   @JoinTable()
   participants?: User[];
 }

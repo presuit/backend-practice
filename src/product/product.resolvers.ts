@@ -1,4 +1,12 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Int,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { Roles } from 'src/common/auth-roles';
 import { AuthUser } from 'src/common/auth-user';
 import { User } from 'src/user/entities/user.entity';
@@ -78,6 +86,11 @@ export class RoomResolvers {
     @Args('input') input: JoinRoomInput,
   ): Promise<JoinRoomOutput> {
     return this.productServices.joinRoom(user, input);
+  }
+
+  @ResolveField((type) => Int)
+  participantCounts(@Parent() room: Room): Promise<number> {
+    return this.productServices.participantCounts(room);
   }
 }
 
