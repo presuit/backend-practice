@@ -14,6 +14,10 @@ import { AllCategoriesOutput } from './dtos/all-categories.dto';
 import { AllProductsInput, AllProductsOuput } from './dtos/all-products.dto';
 import { AllRoomsOutput } from './dtos/all-rooms.dto';
 import {
+  CreateCategoryInput,
+  CreateCategoryOutput,
+} from './dtos/create-category.dto';
+import {
   CreateProductInput,
   CreateProductOutput,
 } from './dtos/create-product.dto';
@@ -107,6 +111,14 @@ export class CategoryResolvers {
   @Query((returns) => AllCategoriesOutput)
   allCategories(): Promise<AllCategoriesOutput> {
     return this.productServices.allCategories();
+  }
+
+  @Roles(['Any'])
+  @Mutation((returns) => CreateCategoryOutput)
+  createCategory(
+    @Args('input') input: CreateCategoryInput,
+  ): Promise<CreateCategoryOutput> {
+    return this.productServices.createCategory(input);
   }
 
   @Roles(['Any'])

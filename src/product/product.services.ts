@@ -23,6 +23,10 @@ import { AllProductsInput, AllProductsOuput } from './dtos/all-products.dto';
 import { MsgServices } from 'src/msg/msg.services';
 import { Wallet, WalletHistory } from 'src/user/entities/wallet.entity';
 import { PickUpBuyerInput, PickUpBuyerOutput } from './dtos/pick-up-buyer.dto';
+import {
+  CreateCategoryInput,
+  CreateCategoryOutput,
+} from './dtos/create-category.dto';
 
 @Injectable()
 export class ProductServices {
@@ -75,7 +79,7 @@ export class ProductServices {
   async createProduct(
     user: User,
     {
-      categoryName,
+      categorySlug,
       name,
       price,
       bigImg,
@@ -107,10 +111,18 @@ export class ProductServices {
       const room = await this.rooms.save(this.rooms.create({ product }));
       product.room = room;
 
-      const category = await this.categories.getOrCreateCategory(categoryName);
+      const { ok, category, error } = await this.findCategoryBySlug({
+        slug: categorySlug,
+      });
+      if (!ok && error) {
+        return {
+          ok,
+          error,
+        };
+      }
       product.category = category;
       await this.products.save(product);
-      return { ok: true };
+      return { ok: true, productId: product.id };
     } catch (error) {
       console.log(error);
       return {
@@ -143,7 +155,7 @@ export class ProductServices {
     {
       productId,
       detailImgSrcs,
-      categoryName,
+      categorySlug,
       bigImg,
       name,
       description,
@@ -181,10 +193,16 @@ export class ProductServices {
         }
         product.detailImgs = container;
       }
-      if (categoryName) {
-        const category = await this.categories.getOrCreateCategory(
-          categoryName,
-        );
+      if (categorySlug) {
+        const { ok, error, category } = await this.findCategoryBySlug({
+          slug: categorySlug,
+        });
+        if (!ok && error) {
+          return {
+            ok,
+            error,
+          };
+        }
         product.category = category;
       }
 
@@ -357,6 +375,22 @@ export class ProductServices {
       return {
         ok: false,
         error: '카테고리들을 불러오는데 실패했습니다.',
+      };
+    }
+  }
+
+  async createCategory({
+    name,
+  }: CreateCategoryInput): Promise<CreateCategoryOutput> {
+    try {
+      await this.categories.getOrCreateCategory(name);
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: '카테고리를 찾을 수 없습니다.',
       };
     }
   }

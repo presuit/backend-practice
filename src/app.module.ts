@@ -16,6 +16,7 @@ import { MsgModule } from './msg/msg.module';
 import { Msg } from './msg/entities/msg.entity';
 import { MsgRoom } from './msg/entities/msg-room.entity';
 import { Wallet } from './user/entities/wallet.entity';
+import { AppControllers } from './app.controllers';
 
 @Module({
   imports: [
@@ -65,7 +66,7 @@ import { Wallet } from './user/entities/wallet.entity';
     ProductModule,
     MsgModule,
   ],
-  controllers: [],
+  controllers: [AppControllers],
   providers: [],
 })
 export class AppModule {}

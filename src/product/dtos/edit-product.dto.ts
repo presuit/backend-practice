@@ -19,7 +19,7 @@ export class EditProductInput extends PartialType(
   detailImgSrcs?: string[];
 
   @Field((type) => String, { nullable: true })
-  categoryName?: string;
+  categorySlug?: string;
 }
 
 @ObjectType()
