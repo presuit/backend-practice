@@ -1,10 +1,26 @@
-import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
+import {
+  Field,
+  InputType,
+  Int,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
 import { MsgRoom } from 'src/msg/entities/msg-room.entity';
 import { Room } from 'src/product/entities/room.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Column, Entity, ManyToOne, OneToOne, RelationId } from 'typeorm';
 import { Category } from './category.entity';
+
+export enum PointPercent {
+  zeroDotOne = 'zeroDotOne',
+  one = 'one',
+  ten = 'ten',
+  half = 'half',
+  full = 'full',
+}
+
+registerEnumType(PointPercent, { name: 'PointPercent' });
 
 @InputType('DetailImgInput', { isAbstract: true })
 @ObjectType()
@@ -26,6 +42,10 @@ export class Product extends Common {
   @Field((type) => Int)
   @Column()
   price: number;
+
+  @Field((type) => PointPercent)
+  @Column({ enum: PointPercent })
+  pointPercent: PointPercent;
 
   //  상품에 대한 설명
   @Field((type) => String, { nullable: true })

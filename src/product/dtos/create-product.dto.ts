@@ -3,7 +3,11 @@ import { CommonOutput } from 'src/common/dtos/common.dto';
 import { Product } from '../entities/product.entity';
 
 @InputType()
-export class CreateProductInput extends PickType(Product, ['name', 'price']) {
+export class CreateProductInput extends PickType(Product, [
+  'name',
+  'price',
+  'pointPercent',
+]) {
   @Field((type) => String, { nullable: true })
   bigImg?: string;
 

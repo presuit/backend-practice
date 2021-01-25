@@ -85,6 +85,7 @@ export class ProductServices {
       bigImg,
       detailImgs,
       description,
+      pointPercent,
     }: CreateProductInput,
   ): Promise<CreateProductOutput> {
     try {
@@ -95,6 +96,7 @@ export class ProductServices {
           seller: user,
           bigImg,
           description,
+          pointPercent,
         }),
       );
 
@@ -159,6 +161,7 @@ export class ProductServices {
       bigImg,
       name,
       description,
+      pointPercent,
     }: EditProductInput,
   ): Promise<EditProductOutput> {
     try {
@@ -213,6 +216,7 @@ export class ProductServices {
           ...(name && { name }),
           ...(bigImg && { bigImg }),
           ...(description && { description }),
+          ...(pointPercent && { pointPercent }),
         },
       ]);
       return {
@@ -333,13 +337,13 @@ export class ProductServices {
           error: '입력된 product의 room과 입력된 room이 다릅니다.',
         };
       }
-      if (!participants || participants.length < 2) {
-        return {
-          ok: false,
-          error:
-            'product room에는 2명이상의 participant들이 존재해야 추첨이 가능합니다.',
-        };
-      }
+      // if (!participants || participants.length < 2) {
+      //   return {
+      //     ok: false,
+      //     error:
+      //       'product room에는 2명이상의 participant들이 존재해야 추첨이 가능합니다.',
+      //   };
+      // }
       if (product.savedAmount < product.price) {
         return {
           ok: false,
