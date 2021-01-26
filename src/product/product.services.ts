@@ -138,7 +138,7 @@ export class ProductServices {
     try {
       const product = await this.products.findOneOrFail(
         { id: productId },
-        { relations: ['category', 'room'] },
+        { relations: ['category', 'room', 'seller', 'buyer'] },
       );
       return {
         ok: true,
