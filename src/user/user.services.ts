@@ -151,6 +151,9 @@ export class UserServices {
       if (input.username) {
         user.username = input.username;
       }
+      if (input.avatarImg) {
+        user.avatarImg = input.avatarImg;
+      }
       await this.users.save(user);
       return {
         ok: true,

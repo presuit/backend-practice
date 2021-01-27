@@ -11,7 +11,7 @@ import { User } from '../entities/user.entity';
 
 @InputType()
 export class EditProfileInput extends PartialType(
-  PickType(User, ['username', 'password']),
+  PickType(User, ['username', 'password', 'avatarImg']),
 ) {
   @Field((type) => Int)
   userId: number;
