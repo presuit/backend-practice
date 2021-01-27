@@ -167,7 +167,10 @@ export class UserServices {
     userId,
   }: FindUserByIdInput): Promise<FindUserByIdOutput> {
     try {
-      const user = await this.users.findOneOrFail({ id: userId });
+      const user = await this.users.findOneOrFail(
+        { id: userId },
+        { relations: ['sellingProducts'] },
+      );
       return {
         ok: true,
         user,
