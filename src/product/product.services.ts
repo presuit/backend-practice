@@ -27,6 +27,7 @@ import {
   CreateCategoryInput,
   CreateCategoryOutput,
 } from './dtos/create-category.dto';
+import { Category } from './entities/category.entity';
 
 @Injectable()
 export class ProductServices {
@@ -169,6 +170,8 @@ export class ProductServices {
         { id: productId },
         { relations: ['seller'] },
       );
+      let container: DetailImg[] = [];
+      let category: Category;
       if (!product) {
         return {
           ok: false,
@@ -188,16 +191,18 @@ export class ProductServices {
         };
       }
       if (detailImgSrcs) {
-        const container: DetailImg[] = [];
         for (const item of detailImgSrcs) {
           const convertedItem = new DetailImg();
           convertedItem.source = item;
           container.push(convertedItem);
         }
-        product.detailImgs = container;
       }
       if (categorySlug) {
-        const { ok, error, category } = await this.findCategoryBySlug({
+        const {
+          ok,
+          error,
+          category: _category,
+        } = await this.findCategoryBySlug({
           slug: categorySlug,
         });
         if (!ok && error) {
@@ -206,15 +211,23 @@ export class ProductServices {
             error,
           };
         }
-        product.category = category;
+        category = _category;
+      }
+
+      let _bigImg: string | null;
+      if (bigImg === 'delete') {
+        _bigImg = null;
+      } else {
+        _bigImg = bigImg;
       }
 
       await this.products.save([
         {
           id: productId,
-          ...product,
           ...(name && { name }),
-          ...(bigImg && { bigImg }),
+          ...(bigImg && { bigImg: _bigImg }),
+          ...(container && { detailImgs: container }),
+          ...(category && { category }),
           ...(description && { description }),
           ...(pointPercent && { pointPercent }),
         },
