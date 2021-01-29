@@ -61,7 +61,7 @@ export class AppControllers {
   ): Promise<{ deleted: boolean; error?: string }> {
     try {
       await new AWS.S3()
-        .deleteObject({ Bucket: body.bucket, Key: body.key })
+        .deleteObject({ Bucket: body.bucket || BUCKET_NAME, Key: body.key })
         .promise();
       return {
         deleted: true,

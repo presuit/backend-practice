@@ -162,7 +162,6 @@ export class ProductServices {
       bigImg,
       name,
       description,
-      pointPercent,
     }: EditProductInput,
   ): Promise<EditProductOutput> {
     try {
@@ -190,7 +189,7 @@ export class ProductServices {
           error: '해당 프로덕트를 수정할 권한이 없습니다.',
         };
       }
-      if (detailImgSrcs) {
+      if (detailImgSrcs && detailImgSrcs.length !== 0) {
         for (const item of detailImgSrcs) {
           const convertedItem = new DetailImg();
           convertedItem.source = item;
@@ -215,21 +214,24 @@ export class ProductServices {
       }
 
       let _bigImg: string | null;
-      if (bigImg === 'delete') {
-        _bigImg = null;
-      } else {
-        _bigImg = bigImg;
+      if (bigImg) {
+        if (bigImg === 'delete') {
+          _bigImg = null;
+        } else {
+          _bigImg = bigImg;
+        }
       }
+
+      console.log('fjoifew', detailImgSrcs, bigImg, _bigImg);
 
       await this.products.save([
         {
           id: productId,
           ...(name && { name }),
           ...(bigImg && { bigImg: _bigImg }),
-          ...(container && { detailImgs: container }),
+          ...(detailImgSrcs && container && { detailImgs: container }),
           ...(category && { category }),
           ...(description && { description }),
-          ...(pointPercent && { pointPercent }),
         },
       ]);
       return {
