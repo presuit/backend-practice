@@ -1,6 +1,9 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Inject } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { PubSub } from 'graphql-subscriptions';
 import { Roles } from 'src/common/auth-roles';
 import { AuthUser } from 'src/common/auth-user';
+import { PUB_SUB } from 'src/common/common.module';
 import { User } from 'src/user/entities/user.entity';
 import { AllMsgRoomsOutput } from './dto/all-msg-rooms.dto';
 import {
@@ -20,7 +23,10 @@ import { MsgServices } from './msg.services';
 
 @Resolver((of) => MsgRoom)
 export class MsgRoomResolvers {
-  constructor(private readonly msgServices: MsgServices) {}
+  constructor(
+    private readonly msgServices: MsgServices,
+    @Inject(PUB_SUB) private readonly pubsub: PubSub,
+  ) {}
 
   @Roles(['Any'])
   @Mutation((returns) => CreateMsgRoomOutput)
@@ -52,5 +58,18 @@ export class MsgRoomResolvers {
     @AuthUser() user: User,
   ): Promise<DeleteMsgRoomOutput> {
     return this.msgServices.deleteMsgRoom(user, input);
+  }
+
+  @Mutation((returns) => Boolean)
+  potatoReady() {
+    this.pubsub.publish('hotPotatoes', { babyBocks: 'Your potato is ready!' });
+    return true;
+  }
+
+  @Subscription((returns) => String)
+  @Roles(['Any'])
+  babyBocks(@AuthUser() user: User) {
+    console.log(user);
+    return this.pubsub.asyncIterator('hotPotatoes');
   }
 }

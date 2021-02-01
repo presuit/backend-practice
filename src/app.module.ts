@@ -28,10 +28,19 @@ import { AppControllers } from './app.controllers';
       autoSchemaFile: true,
       playground: true,
       debug: false,
+      installSubscriptionHandlers: true,
       context: (context) => {
         if (context.req) {
           return {
+            // for HTTP protocol
             token: context.req.headers['x-jwt'],
+            req: context.req,
+          };
+        }
+        if (context.connection) {
+          // for subscription WS
+          return {
+            token: context.connection.context['x-jwt'],
           };
         }
       },
