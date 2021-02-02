@@ -1,14 +1,6 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { Common } from 'src/common/entities/common.entity';
-import { User } from 'src/user/entities/user.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  JoinTable,
-  ManyToOne,
-  OneToOne,
-} from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { MsgRoom } from './msg-room.entity';
 
 @InputType('MsgEntityInput', { isAbstract: true })
@@ -19,20 +11,17 @@ export class Msg extends Common {
   @Column()
   msgText: string;
 
-  @Field((type) => User)
-  @OneToOne((type) => User)
-  @JoinColumn()
-  from: User;
+  @Field((type) => Int)
+  @Column()
+  fromId: number;
 
-  @Field((type) => User)
-  @OneToOne((type) => User)
-  @JoinColumn()
-  to: User;
+  @Field((type) => Int)
+  @Column()
+  toId: number;
 
   @Field((type) => MsgRoom)
   @ManyToOne((type) => MsgRoom, (msgRoom) => msgRoom.msgs, {
     onDelete: 'CASCADE',
   })
-  @JoinTable()
   msgRoom: MsgRoom;
 }

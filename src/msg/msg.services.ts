@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PubSub } from 'graphql-subscriptions';
+import { PUB_SUB } from 'src/common/common.module';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -8,16 +10,19 @@ import {
   CreateMsgRoomInput,
   CreateMsgRoomOutput,
 } from './dto/create-msg-room.dto';
+import { CreateMsgInput, CreateMsgOutput } from './dto/create-msg.dto';
 import {
   DeleteMsgRoomInput,
   DeleteMsgRoomOutput,
 } from './dto/delete-msg-room.dto';
+import { FindMsgByIdInput, FindMsgByIdOutput } from './dto/find-msg-by-id.dto';
 import {
   FindMsgRoomByIdInput,
   FindMsgRoomByIdOutput,
 } from './dto/find-msg-room-by-id.dto';
 import { MsgRoom } from './entities/msg-room.entity';
 import { Msg } from './entities/msg.entity';
+import { RECEIVE_MSG } from './msg-constant';
 
 @Injectable()
 export class MsgServices {
@@ -26,6 +31,7 @@ export class MsgServices {
     @InjectRepository(MsgRoom) private readonly msgRooms: Repository<MsgRoom>,
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Product) private readonly products: Repository<Product>,
+    @Inject(PUB_SUB) private readonly pubsub: PubSub,
   ) {}
 
   async createMsgRoom({
@@ -71,7 +77,7 @@ export class MsgServices {
         for (const msgRoomId of user.msgRoomsId) {
           const msgRoom = await this.msgRooms.findOneOrFail(
             { id: msgRoomId },
-            { relations: ['participants'] },
+            { relations: ['participants', 'product'] },
           );
           if (msgRoom.deleted === false) {
             msgRooms.push(msgRoom);
@@ -138,7 +144,10 @@ export class MsgServices {
     { id: msgRoomId }: FindMsgRoomByIdInput,
   ): Promise<FindMsgRoomByIdOutput> {
     try {
-      const msgRoom = await this.msgRooms.findOneOrFail({ id: msgRoomId });
+      const msgRoom = await this.msgRooms.findOneOrFail(
+        { id: msgRoomId },
+        { relations: ['product', 'msgs', 'participants'] },
+      );
       const included = user.msgRoomsId.find((id) => id === msgRoomId);
       if (!included) {
         return {
@@ -149,6 +158,7 @@ export class MsgServices {
       if (msgRoom.deleted === true) {
         throw Error();
       }
+      msgRoom.msgs.sort((a, b) => a.id - b.id);
       return { ok: true, msgRoom };
     } catch (error) {
       return {
@@ -157,4 +167,156 @@ export class MsgServices {
       };
     }
   }
+
+  async msgCounts(msgRoom: MsgRoom): Promise<number> {
+    try {
+      const expandedMsgRoom = await this.msgRooms.findOne(
+        { id: msgRoom.id },
+        { relations: ['msgs'] },
+      );
+      if (!expandedMsgRoom) {
+        return null;
+      }
+
+      return expandedMsgRoom.msgs.length;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  // Msg
+  async createMsg(
+    user: User,
+    { fromId, msgText, toId, msgRoomId }: CreateMsgInput,
+  ): Promise<CreateMsgOutput> {
+    try {
+      if (user.id !== fromId) {
+        return {
+          ok: false,
+          error: '현재 로그인한 유저와  Msg를 보내려는 유저의 정보가 다릅니다.',
+        };
+      }
+      const toUser = await this.users.findOne({ id: toId });
+      if (!toUser) {
+        return {
+          ok: false,
+          error: '해당 Msg를 받을  User가 없습니다.',
+        };
+      }
+      const msgRoom = await this.msgRooms.findOne(
+        { id: msgRoomId },
+        { relations: ['participants'] },
+      );
+      if (!msgRoom) {
+        return {
+          ok: false,
+          error: '해당 MsgRoom이 존재하지 않습니다.',
+        };
+      }
+      const AmIFromUser = msgRoom.participants.find(
+        (eachUser) => eachUser.id === fromId,
+      );
+      const AmIToUser = msgRoom.participants.find(
+        (eachUser) => eachUser.id === toId,
+      );
+      if (!Boolean(AmIFromUser) || !Boolean(AmIToUser)) {
+        return {
+          ok: false,
+          error:
+            'fromUser와 toUser 중에 MsgRoom에 존재하지 않은 유저가 있습니다.',
+        };
+      }
+      const newMsg = await this.msgs.save(
+        this.msgs.create({
+          fromId,
+          toId,
+          msgRoom,
+          msgText,
+        }),
+      );
+      // send some subscription payload
+      await this.pubsub.publish(RECEIVE_MSG, { receiveMsg: newMsg });
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: '해당 Msg를 만들수 없습니다.',
+      };
+    }
+  }
+
+  async findMsgById(
+    user: User,
+    { id }: FindMsgByIdInput,
+  ): Promise<FindMsgByIdOutput> {
+    try {
+      const msg = await this.msgs.findOneOrFail({ id });
+      return {
+        ok: true,
+        msg,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        ok: false,
+        error: '해당 Msg를 찾지 못했습니다.',
+      };
+    }
+  }
+
+  // async allMsgInRoom(f
+  //   user: User,
+  //   { msgRoomId }: AllMsgInRoomInput,
+  // ): Promise<AllMsgInRoomOutput> {
+  //   try {
+  //     const msgRoom = await this.msgRooms.findOne(
+  //       { id: msgRoomId },
+  //       { relations: ['participants', 'msgs'] },
+  //     );
+  //     if (!msgRoom) {
+  //       return {
+  //         ok: false,
+  //         error: '해당 MsgRoom을 찾을 수 없습니다.',
+  //       };
+  //     }
+  //     const isMeInRoom = Boolean(
+  //       msgRoom.participants.find((eachUser) => eachUser.id === user.id),
+  //     );
+  //     if (!isMeInRoom) {
+  //       return {
+  //         ok: false,
+  //         error: '당신은 해당 MsgRoom을 볼 수 없습니다.',
+  //       };
+  //     }
+  //     const msgs = msgRoom.msgs;
+  //     let msgsContainer: Msg[] = [];
+
+  //     if (msgs && msgs.length !== 0) {
+  //       for (const item of msgs) {
+  //         const expandedMsg = await this.msgs.findOne(
+  //           { id: item.id },
+  //           { relations: ['from', 'to'] },
+  //         );
+  //         if (expandedMsg) {
+  //           msgsContainer.push(expandedMsg);
+  //         }
+  //       }
+  //     }
+  //     return {
+  //       ok: true,
+  //       ...(msgsContainer && msgsContainer.length !== 0
+  //         ? { msg: msgsContainer }
+  //         : { msgs }),
+  //     };
+  //   } catch (error) {
+  //     console.log(error);
+  //     return {
+  //       ok: false,
+  //       error: '해당 MsgRoom 내에 있는 Msg를 가져올 수 없습니다.',
+  //     };
+  //   }
+  // }
 }
