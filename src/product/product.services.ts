@@ -222,8 +222,6 @@ export class ProductServices {
         }
       }
 
-      console.log('fjoifew', detailImgSrcs, bigImg, _bigImg);
-
       await this.products.save([
         {
           id: productId,

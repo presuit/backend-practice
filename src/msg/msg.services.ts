@@ -249,6 +249,7 @@ export class MsgServices {
           createdAt: newMSg.createdAt,
         },
       });
+      console.log('createMsgPublished!', msgRoom);
       return {
         ok: true,
       };

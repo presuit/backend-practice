@@ -96,16 +96,15 @@ export class MsgRoomResolvers {
 
   @Roles(['Any'])
   @Subscription((returns) => ReceiveMsgCountOutput, {
-    filter: ({ receiveMsgCount }, _, { user }) => {
-      console.log(receiveMsgCount, user);
-      const validate = user.msgRoomsId.find(
-        (eachMsgRoom) => eachMsgRoom === receiveMsgCount.id,
-      );
-      if (!Boolean(validate)) {
-        return false;
-      }
-      return true;
-    },
+    // filter: ({ receiveMsgCount }, _, { user }) => {
+    //   const validate = user.msgRoomsId.find(
+    //     (eachMsgRoom) => eachMsgRoom === receiveMsgCount.id,
+    //   );
+    //   if (!Boolean(validate)) {
+    //     return false;
+    //   }
+    //   return true;
+    // },
   })
   receiveMsgCount() {
     return this.pubsub.asyncIterator(RECEIVE_MSG_COUNT);

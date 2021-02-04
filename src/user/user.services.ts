@@ -44,7 +44,7 @@ export class UserServices {
     try {
       const me = await this.users.findOneOrFail(
         { id: user.id },
-        { relations: ['wallet'] },
+        { relations: ['wallet', 'msgRooms'] },
       );
       return {
         ok: true,
