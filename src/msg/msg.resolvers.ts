@@ -24,19 +24,22 @@ import {
   DeleteMsgRoomInput,
   DeleteMsgRoomOutput,
 } from './dto/delete-msg-room.dto';
-import { FindMsgByIdInput, FindMsgByIdOutput } from './dto/find-msg-by-id.dto';
 import {
   FindMsgRoomByIdInput,
   FindMsgRoomByIdOutput,
 } from './dto/find-msg-room-by-id.dto';
+import { ReceiveMsgCountOutput } from './dto/receive-msg-counts.dto';
 import { MsgRoom } from './entities/msg-room.entity';
 import { Msg } from './entities/msg.entity';
-import { RECEIVE_MSG } from './msg-constant';
+import { RECEIVE_MSG_COUNT, RECEIVE_MSG_ROOM } from './msg-constant';
 import { MsgServices } from './msg.services';
 
 @Resolver((of) => MsgRoom)
 export class MsgRoomResolvers {
-  constructor(private readonly msgServices: MsgServices) {}
+  constructor(
+    private readonly msgServices: MsgServices,
+    @Inject(PUB_SUB) private readonly pubsub: PubSub,
+  ) {}
 
   @Roles(['Any'])
   @Mutation((returns) => CreateMsgRoomOutput)
@@ -75,35 +78,43 @@ export class MsgRoomResolvers {
     return this.msgServices.msgCounts(msgRoom);
   }
 
-  // @Mutation((returns) => Boolean)
-  // async potatoReady(@Args('id') id: number) {
-  //   await this.pubsub.publish('hotPotatoes', {
-  //     babyBocks: id,
-  //   });
-  //   return true;
-  // }
+  @Roles(['Any'])
+  @Subscription((returns) => MsgRoom, {
+    filter: ({ receiveMsgRoom }, { msgRoomId }, { user }) => {
+      const validateUser = user.msgRoomsId.find(
+        (eachMsgRoom) => eachMsgRoom === msgRoomId,
+      );
+      if (!Boolean(validateUser)) {
+        return false;
+      }
+      return receiveMsgRoom.id === msgRoomId;
+    },
+  })
+  receiveMsgRoom(@Args('msgRoomId') msgRoomId: number) {
+    return this.pubsub.asyncIterator(RECEIVE_MSG_ROOM);
+  }
 
-  // @Subscription((returns) => String, {
-  //   filter: ({ babyBocks }, { id }) => {
-  //     console.log(babyBocks, id);
-  //     return babyBocks === id;
-  //   },
-  //   resolve: ({ babyBocks }) => {
-  //     return `Your Potato with the id ${babyBocks} is ready`;
-  //   },
-  // })
-  // @Roles(['Any'])
-  // babyBocks(@Args('id') id: number) {
-  //   return this.pubsub.asyncIterator('hotPotatoes');
-  // }
+  @Roles(['Any'])
+  @Subscription((returns) => ReceiveMsgCountOutput, {
+    filter: ({ receiveMsgCount }, _, { user }) => {
+      console.log(receiveMsgCount, user);
+      const validate = user.msgRoomsId.find(
+        (eachMsgRoom) => eachMsgRoom === receiveMsgCount.id,
+      );
+      if (!Boolean(validate)) {
+        return false;
+      }
+      return true;
+    },
+  })
+  receiveMsgCount() {
+    return this.pubsub.asyncIterator(RECEIVE_MSG_COUNT);
+  }
 }
 
 @Resolver((of) => Msg)
 export class MsgResolvers {
-  constructor(
-    private readonly msgServices: MsgServices,
-    @Inject(PUB_SUB) private readonly pubsub: PubSub,
-  ) {}
+  constructor(private readonly msgServices: MsgServices) {}
 
   @Roles(['Any'])
   @Mutation((returns) => CreateMsgOutput)
@@ -112,31 +123,5 @@ export class MsgResolvers {
     @Args('input') input: CreateMsgInput,
   ): Promise<CreateMsgOutput> {
     return this.msgServices.createMsg(user, input);
-  }
-
-  @Roles(['Any'])
-  @Subscription((returns) => Msg, {
-    filter: (
-      {
-        receiveMsg: {
-          msgRoom: { id: payloadMsgRoomId },
-        },
-      },
-      { msgRoomId },
-    ) => {
-      return payloadMsgRoomId === msgRoomId;
-    },
-  })
-  receiveMsg(@Args('msgRoomId') msgRoomId: number) {
-    return this.pubsub.asyncIterator(RECEIVE_MSG);
-  }
-
-  @Roles(['Any'])
-  @Query((returns) => FindMsgByIdOutput)
-  findMsgById(
-    @AuthUser() user: User,
-    @Args('input') input: FindMsgByIdInput,
-  ): Promise<FindMsgByIdOutput> {
-    return this.msgServices.findMsgById(user, input);
   }
 }

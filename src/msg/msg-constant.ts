@@ -1,1 +1,3 @@
 export const RECEIVE_MSG = 'RECEIVE_MSG';
+export const RECEIVE_MSG_ROOM = 'RECEIVE_MSG_ROOM';
+export const RECEIVE_MSG_COUNT = 'RECEIVE_MSG_COUNT';
