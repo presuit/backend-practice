@@ -37,10 +37,10 @@ export class MsgServices {
     @Inject(PUB_SUB) private readonly pubsub: PubSub,
   ) {}
 
-  async createMsgRoom({
-    participants,
-    productId,
-  }: CreateMsgRoomInput): Promise<CreateMsgRoomOutput> {
+  async createMsgRoom(
+    user: User,
+    { participants, productId }: CreateMsgRoomInput,
+  ): Promise<CreateMsgRoomOutput> {
     try {
       const product = await this.products.findOne({ id: productId });
       if (!product) {
@@ -230,7 +230,7 @@ export class MsgServices {
             'fromUser와 toUser 중에 MsgRoom에 존재하지 않은 유저가 있습니다.',
         };
       }
-      const newMSg = await this.msgs.save(
+      const newMsg = await this.msgs.save(
         this.msgs.create({
           fromId,
           toId,
@@ -238,7 +238,7 @@ export class MsgServices {
           msgText,
         }),
       );
-      msgRoom.msgs.push(newMSg);
+      msgRoom.msgs.push(newMsg);
       msgRoom.msgs.sort((a, b) => a.id - b.id);
       // send some subscription payload
       await this.pubsub.publish(RECEIVE_MSG_ROOM, { receiveMsgRoom: msgRoom });
@@ -246,10 +246,9 @@ export class MsgServices {
         receiveMsgCount: {
           id: msgRoom.id,
           msgCounts: msgRoom.msgs.length,
-          createdAt: newMSg.createdAt,
+          createdAt: newMsg.createdAt,
         },
       });
-      console.log('createMsgPublished!', msgRoom);
       return {
         ok: true,
       };
@@ -259,5 +258,9 @@ export class MsgServices {
         error: '해당 Msg를 만들수 없습니다.',
       };
     }
+  }
+
+  async getUpdatedUser(user: User) {
+    return this.users.findOne({ id: user.id });
   }
 }

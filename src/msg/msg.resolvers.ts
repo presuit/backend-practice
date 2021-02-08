@@ -14,6 +14,8 @@ import { Roles } from 'src/common/auth-roles';
 import { AuthUser } from 'src/common/auth-user';
 import { PUB_SUB } from 'src/common/common.module';
 import { User } from 'src/user/entities/user.entity';
+import { UserResolvers } from 'src/user/user.resolvers';
+import { UserServices } from 'src/user/user.services';
 import { AllMsgRoomsOutput } from './dto/all-msg-rooms.dto';
 import {
   CreateMsgRoomInput,
@@ -44,9 +46,10 @@ export class MsgRoomResolvers {
   @Roles(['Any'])
   @Mutation((returns) => CreateMsgRoomOutput)
   createMsgRoom(
+    @AuthUser() user: User,
     @Args('input') input: CreateMsgRoomInput,
   ): Promise<CreateMsgRoomOutput> {
-    return this.msgServices.createMsgRoom(input);
+    return this.msgServices.createMsgRoom(user, input);
   }
 
   @Roles(['Any'])
@@ -82,7 +85,7 @@ export class MsgRoomResolvers {
   @Subscription((returns) => MsgRoom, {
     filter: ({ receiveMsgRoom }, { msgRoomId }, { user }) => {
       const validateUser = user.msgRoomsId.find(
-        (eachMsgRoom) => eachMsgRoom === msgRoomId,
+        (eachMsgRoomId) => eachMsgRoomId === msgRoomId,
       );
       if (!Boolean(validateUser)) {
         return false;
@@ -96,17 +99,18 @@ export class MsgRoomResolvers {
 
   @Roles(['Any'])
   @Subscription((returns) => ReceiveMsgCountOutput, {
-    // filter: ({ receiveMsgCount }, _, { user }) => {
-    //   const validate = user.msgRoomsId.find(
-    //     (eachMsgRoom) => eachMsgRoom === receiveMsgCount.id,
-    //   );
-    //   if (!Boolean(validate)) {
-    //     return false;
-    //   }
-    //   return true;
-    // },
+    async filter(this: MsgRoomResolvers, { receiveMsgCount }, _, { user }) {
+      const _user = await this.msgServices.getUpdatedUser(user);
+      const validate = _user.msgRoomsId.find(
+        (eachMsgRoomId) => eachMsgRoomId === receiveMsgCount.id,
+      );
+      if (!Boolean(validate)) {
+        return false;
+      }
+      return true;
+    },
   })
-  receiveMsgCount() {
+  async receiveMsgCount(@AuthUser() user: User) {
     return this.pubsub.asyncIterator(RECEIVE_MSG_COUNT);
   }
 }

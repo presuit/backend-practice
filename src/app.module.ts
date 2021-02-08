@@ -63,7 +63,7 @@ import { AppControllers } from './app.controllers';
         Wallet,
       ],
       synchronize: true,
-      logging: true,
+      logging: false,
     }),
     JwtModule.forRoot({ secret: process.env.JWT_SECRET }),
     CommonModule,

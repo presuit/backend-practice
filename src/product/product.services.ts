@@ -28,6 +28,7 @@ import {
   CreateCategoryOutput,
 } from './dtos/create-category.dto';
 import { Category } from './entities/category.entity';
+import { AuthUser } from 'src/common/auth-user';
 
 @Injectable()
 export class ProductServices {
@@ -243,7 +244,10 @@ export class ProductServices {
     }
   }
 
-  async soldout({ buyerId, productId }: SoldoutInput): Promise<SoldoutOutput> {
+  async soldout(
+    user: User,
+    { buyerId, productId }: SoldoutInput,
+  ): Promise<SoldoutOutput> {
     try {
       const buyer = await this.users.findOne({ id: buyerId });
       const product = await this.products.findOne({ id: productId });
@@ -298,7 +302,7 @@ export class ProductServices {
       const {
         ok: createMsgRoomOk,
         error: createMsgRoomError,
-      } = await this.msgServices.createMsgRoom({
+      } = await this.msgServices.createMsgRoom(user, {
         productId,
         participants: [seller, buyer],
       });
@@ -579,10 +583,13 @@ export class ProductServices {
         }
         // 에러없이 buyer가 리턴 되었으면 buyer로 soldout 메소드 실행
         if (buyer) {
-          const { ok: soldOutOk, error: soldOutError } = await this.soldout({
-            buyerId: buyer.id,
-            productId: product.id,
-          });
+          const { ok: soldOutOk, error: soldOutError } = await this.soldout(
+            user,
+            {
+              buyerId: buyer.id,
+              productId: product.id,
+            },
+          );
           if (!soldOutOk && soldOutError) {
             return {
               ok: soldOutOk,
@@ -605,20 +612,12 @@ export class ProductServices {
   }
 
   participantCounts(room: Room): number {
-    try {
-      return room.participants.length;
-    } catch (error) {
-      return null;
-    }
+    return room.participants.length;
   }
 
   isMeInRoom(room: Room, userId: number): boolean {
-    try {
-      return Boolean(
-        room.participants.find((participant) => participant.id === userId),
-      );
-    } catch (error) {
-      return false;
-    }
+    return Boolean(
+      room.participants.find((participant) => participant.id === userId),
+    );
   }
 }
