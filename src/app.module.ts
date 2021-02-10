@@ -50,7 +50,7 @@ import { AppServices } from './app.services';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      ...(process.env.DATABASE_URL
+      ...(process.env.NODE_ENV === 'production'
         ? { url: process.env.DATABASE_URL }
         : {
             host: process.env.PG_HOST,
