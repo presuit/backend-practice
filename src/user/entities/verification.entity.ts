@@ -12,10 +12,6 @@ export class Verification extends Common {
   @Field((type) => String)
   code: string;
 
-  @Column({ nullable: true })
-  @Field((type) => String, { nullable: true })
-  phoneNumber?: string;
-
   @OneToOne((type) => User, { onDelete: 'CASCADE' })
   @JoinColumn()
   @Field((type) => User)
