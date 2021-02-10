@@ -24,8 +24,10 @@ import { AppServices } from './app.services';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath:
-        process.env.NODE_ENV === 'development' ? ['.development.env'] : [],
+      envFilePath: process.env.NODE_ENV === 'development' && [
+        '.development.env',
+      ],
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -50,7 +52,6 @@ import { AppServices } from './app.services';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      ssl: true,
       ...(process.env.NODE_ENV === 'production'
         ? { url: process.env.DATABASE_URL }
         : {
