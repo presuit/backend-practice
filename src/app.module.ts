@@ -31,6 +31,7 @@ import { AppServices } from './app.services';
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
+      introspection: true,
       playground: true,
       debug: false,
       installSubscriptionHandlers: true,
