@@ -69,9 +69,7 @@ export class Product extends Common {
 
   //   이 상품을 판매하는 사람
   @Field((type) => User)
-  @ManyToOne((type) => User, (user) => user.sellingProducts, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne((type) => User, (user) => user.sellingProducts)
   seller: User;
 
   @RelationId((product: Product) => product.seller)

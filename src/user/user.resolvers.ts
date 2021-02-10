@@ -22,6 +22,10 @@ import {
 import { LogInInput, LogInOutput } from './dtos/log-in.dto';
 import { MeOutput } from './dtos/me.dto';
 import { MyWalletOutput } from './dtos/my-wallett.dto';
+import {
+  RequestNewVerificationInput,
+  RequestNewVerificationOutput,
+} from './dtos/request-new-verification.dto';
 import { User } from './entities/user.entity';
 import { Wallet } from './entities/wallet.entity';
 import { UserServices } from './user.services';
@@ -71,6 +75,15 @@ export class UserResolvers {
   @Query((returns) => MeOutput)
   me(@AuthUser() user: User): Promise<MeOutput> {
     return this.userServices.me(user);
+  }
+
+  @Roles(['Any'])
+  @Mutation((returns) => RequestNewVerificationOutput)
+  requestNewVerification(
+    @AuthUser() user: User,
+    @Args('input') input: RequestNewVerificationInput,
+  ): Promise<RequestNewVerificationOutput> {
+    return this.userServices.requestNewVerification(user, input);
   }
 }
 

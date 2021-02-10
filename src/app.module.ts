@@ -17,6 +17,8 @@ import { Msg } from './msg/entities/msg.entity';
 import { MsgRoom } from './msg/entities/msg-room.entity';
 import { Wallet } from './user/entities/wallet.entity';
 import { AppControllers } from './app.controllers';
+import { EmailModule } from './email/email.module';
+import { AppServices } from './app.services';
 
 @Module({
   imports: [
@@ -71,11 +73,17 @@ import { AppControllers } from './app.controllers';
     SmsModule.forRoot({
       apiKey: process.env.SOLAPI_API_KEY,
       apiSecret: process.env.SOLAPI_SECRET_KEY,
+      to: process.env.SOLAPI_FROM,
+    }),
+    EmailModule.forRoot({
+      apiKey: process.env.MAILGUN_API_KEY,
+      domain: process.env.MAILGUN_DOMIAN_NAME,
+      fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     ProductModule,
     MsgModule,
   ],
   controllers: [AppControllers],
-  providers: [],
+  providers: [AppServices],
 })
 export class AppModule {}

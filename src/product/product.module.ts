@@ -12,17 +12,20 @@ import {
 import { ProductServices } from './product.services';
 import { MsgModule } from 'src/msg/msg.module';
 import { Wallet } from 'src/user/entities/wallet.entity';
+import { AppServices } from 'src/app.services';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Product, User, CategoryRepository, Room, Wallet]),
     MsgModule,
+    AppServices,
   ],
   providers: [
     ProductResolvers,
     ProductServices,
     CategoryResolvers,
     RoomResolvers,
+    AppServices,
   ],
 })
 export class ProductModule {}

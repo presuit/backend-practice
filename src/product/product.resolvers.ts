@@ -21,6 +21,10 @@ import {
   CreateProductInput,
   CreateProductOutput,
 } from './dtos/create-product.dto';
+import {
+  DeleteProductInput,
+  DeleteProductOutput,
+} from './dtos/delete-product.dto';
 import { EditProductInput, EditProductOutput } from './dtos/edit-product.dto';
 import {
   FindCategoryBySlugInput,
@@ -70,6 +74,15 @@ export class ProductResolvers {
     @Args('input') input: EditProductInput,
   ): Promise<EditProductOutput> {
     return this.productServices.editProduct(user, input);
+  }
+
+  @Roles(['Any'])
+  @Mutation((returns) => DeleteProductOutput)
+  deleteProduct(
+    @AuthUser() user: User,
+    @Args('input') input: DeleteProductInput,
+  ): Promise<DeleteProductOutput> {
+    return this.productServices.deleteProduct(user, input);
   }
 }
 

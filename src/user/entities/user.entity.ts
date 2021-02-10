@@ -45,6 +45,9 @@ export class User extends Common {
   @Field((type) => [Product], { nullable: true })
   sellingProducts?: Product[];
 
+  @RelationId((user: User) => user.sellingProducts)
+  sellingProductsIds: number[];
+
   @OneToMany((type) => Product, (product) => product.buyer, { nullable: true })
   @Field((type) => [Product], { nullable: true })
   buyingProducts?: Product[];

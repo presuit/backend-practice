@@ -29,6 +29,12 @@ import {
 } from './dtos/create-category.dto';
 import { Category } from './entities/category.entity';
 import { AuthUser } from 'src/common/auth-user';
+import {
+  DeleteProductInput,
+  DeleteProductOutput,
+} from './dtos/delete-product.dto';
+import { AppServices } from 'src/app.services';
+import { BUCKET_NAME } from '../app.services';
 
 @Injectable()
 export class ProductServices {
@@ -40,6 +46,7 @@ export class ProductServices {
     @InjectRepository(Room) private readonly rooms: Repository<Room>,
     @InjectRepository(Wallet) private readonly wallets: Repository<Wallet>,
     @Inject(MsgServices) private readonly msgServices: MsgServices,
+    @Inject(AppServices) private readonly appServices: AppServices,
   ) {}
 
   async allProducts(
@@ -369,7 +376,6 @@ export class ProductServices {
       }
       const index = Math.floor(Math.random() * participants.length);
       const buyer = participants[index];
-      console.log(participants);
       return {
         ok: true,
         buyer,
@@ -424,6 +430,14 @@ export class ProductServices {
         { slug },
         { relations: ['products'] },
       );
+      category.products = category.products.filter(
+        (each) => each.soldout === false,
+      );
+      category.products.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
+      });
       return {
         ok: true,
         category,
@@ -619,5 +633,44 @@ export class ProductServices {
     return Boolean(
       room.participants.find((participant) => participant.id === userId),
     );
+  }
+
+  async deleteProduct(
+    user: User,
+    { productId }: DeleteProductInput,
+  ): Promise<DeleteProductOutput> {
+    try {
+      const product = await this.products.findOneOrFail(productId);
+      const validate = user.sellingProductsIds.find(
+        (each) => each === product.id,
+      );
+      if (!Boolean(validate)) {
+        return {
+          ok: false,
+          error: '당신은 이 product를 지울 권한이 없습니다.',
+        };
+      }
+      // aws s3에 저장된 product detailImgs 지워주는 로직
+      for (const each of product.detailImgs) {
+        const key = each.source.split('/')[3];
+        const { deleted, error } = await this.appServices.deleteImg({
+          bucket: BUCKET_NAME,
+          key,
+        });
+        if (!deleted) {
+          console.log(error);
+          throw Error(error);
+        }
+      }
+      await this.products.delete(productId);
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: '해당 product를 지울 수 없습니다.',
+      };
+    }
   }
 }
