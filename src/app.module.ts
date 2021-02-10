@@ -50,11 +50,15 @@ import { AppServices } from './app.services';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.PG_HOST,
-      port: +process.env.PG_PORT,
-      username: process.env.PG_USERNAME,
-      password: process.env.PG_PASSWORD,
-      database: process.env.PG_DATABASE,
+      ...(process.env.DATABASE_URL
+        ? { url: process.env.DATABASE_URL }
+        : {
+            host: process.env.PG_HOST,
+            port: +process.env.PG_PORT,
+            username: process.env.PG_USERNAME,
+            password: process.env.PG_PASSWORD,
+            database: process.env.PG_DATABASE,
+          }),
       entities: [
         User,
         Verification,
