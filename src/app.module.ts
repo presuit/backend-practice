@@ -52,6 +52,9 @@ import { AppServices } from './app.services';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
+      ssl: {
+        rejectUnauthorized: false,
+      },
       ...(process.env.NODE_ENV === 'production'
         ? { url: process.env.DATABASE_URL }
         : {
