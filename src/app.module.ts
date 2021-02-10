@@ -50,6 +50,7 @@ import { AppServices } from './app.services';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
+      ssl: true,
       ...(process.env.NODE_ENV === 'production'
         ? { url: process.env.DATABASE_URL }
         : {
@@ -69,7 +70,7 @@ import { AppServices } from './app.services';
         MsgRoom,
         Wallet,
       ],
-      synchronize: true,
+      synchronize: process.env.NODE_ENV === 'production' ? false : true,
       logging: false,
     }),
     JwtModule.forRoot({ secret: process.env.JWT_SECRET }),
