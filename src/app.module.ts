@@ -24,7 +24,8 @@ import { AppServices } from './app.services';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.development.env'],
+      envFilePath:
+        process.env.NODE_ENV === 'development' ? ['.development.env'] : [],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
