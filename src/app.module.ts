@@ -77,7 +77,7 @@ import { AppServices } from './app.services';
         MsgRoom,
         Wallet,
       ],
-      synchronize: process.env.NODE_ENV === 'production',
+      synchronize: true,
       logging: false,
     }),
     JwtModule.forRoot({ secret: process.env.JWT_SECRET }),

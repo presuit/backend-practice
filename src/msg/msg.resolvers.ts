@@ -83,8 +83,14 @@ export class MsgRoomResolvers {
 
   @Roles(['Any'])
   @Subscription((returns) => MsgRoom, {
-    filter: ({ receiveMsgRoom }, { msgRoomId }, { user }) => {
-      const validateUser = user.msgRoomsId.find(
+    async filter(
+      this: MsgRoomResolvers,
+      { receiveMsgRoom },
+      { msgRoomId },
+      { user },
+    ) {
+      const _user = await this.msgServices.getUpdatedUser(user);
+      const validateUser = _user.msgRoomsId.find(
         (eachMsgRoomId) => eachMsgRoomId === msgRoomId,
       );
       if (!Boolean(validateUser)) {
@@ -101,16 +107,17 @@ export class MsgRoomResolvers {
   @Subscription((returns) => ReceiveMsgCountOutput, {
     async filter(this: MsgRoomResolvers, { receiveMsgCount }, _, { user }) {
       const _user = await this.msgServices.getUpdatedUser(user);
+      console.log(_user.msgRoomsId);
       const validate = _user.msgRoomsId.find(
         (eachMsgRoomId) => eachMsgRoomId === receiveMsgCount.id,
       );
-      if (!Boolean(validate)) {
+      if (!validate) {
         return false;
       }
       return true;
     },
   })
-  async receiveMsgCount(@AuthUser() user: User) {
+  async receiveMsgCount() {
     return this.pubsub.asyncIterator(RECEIVE_MSG_COUNT);
   }
 }
