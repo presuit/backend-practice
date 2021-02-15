@@ -93,7 +93,7 @@ export class MsgRoomResolvers {
       const validateUser = _user.msgRoomsId.find(
         (eachMsgRoomId) => eachMsgRoomId === msgRoomId,
       );
-      if (!Boolean(validateUser)) {
+      if (!validateUser) {
         return false;
       }
       return receiveMsgRoom.id === msgRoomId;

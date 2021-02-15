@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtServices } from 'src/jwt/jwt.services';
-import { MsgProps } from 'src/sms/sms.interfaces';
-import { SmsServices } from 'src/sms/sms.services';
 import { Repository } from 'typeorm';
 import { AddPointInput, AddPointOutput } from './dtos/add-point.dto';
 import {
@@ -28,11 +26,6 @@ import { MyWalletOutput } from './dtos/my-wallett.dto';
 import { User } from './entities/user.entity';
 import { Verification } from './entities/verification.entity';
 import { Wallet } from './entities/wallet.entity';
-import { EmailServices } from '../email/email.services';
-import {
-  RequestNewVerificationInput,
-  RequestNewVerificationOutput,
-} from './dtos/request-new-verification.dto';
 
 @Injectable()
 export class UserServices {
@@ -42,8 +35,6 @@ export class UserServices {
     @InjectRepository(Verification)
     private readonly verifications: Repository<Verification>,
     private readonly jwtServices: JwtServices,
-    private readonly SmsServices: SmsServices,
-    private readonly emailServices: EmailServices,
   ) {}
 
   async me(user: User): Promise<MeOutput> {
@@ -85,8 +76,6 @@ export class UserServices {
         this.verifications.create({ user: newUser }),
       );
       await this.wallets.save(this.wallets.create({ owner: newUser }));
-      this.emailServices.sendVerificationEmail(email, newVerification.code);
-
       return {
         ok: true,
       };
@@ -95,49 +84,6 @@ export class UserServices {
       return {
         ok: false,
         error: '회원가입 실패',
-      };
-    }
-  }
-
-  async requestNewVerification(
-    user: User,
-    { userId }: RequestNewVerificationInput,
-  ): Promise<RequestNewVerificationOutput> {
-    try {
-      if (user.id !== userId) {
-        return {
-          ok: false,
-          error: '현재 로그인한 유저와 인풋으로 들어온 유저의 정보가 다릅니다.',
-        };
-      }
-      if (user.isVerified === true) {
-        await this.users.save([
-          {
-            id: user.id,
-            isVerified: false,
-          },
-        ]);
-      }
-      const oldVerification = await this.verifications.findOne({
-        where: { user: { id: userId } },
-      });
-      if (oldVerification) {
-        await this.verifications.delete(oldVerification.id);
-      }
-      const newVerification = await this.verifications.save(
-        this.verifications.create({ user: user }),
-      );
-      this.emailServices.sendVerificationEmail(
-        user.email,
-        newVerification.code,
-      );
-      return {
-        ok: true,
-      };
-    } catch (error) {
-      return {
-        ok: false,
-        error: '새로운 Verification Code를 요청하는데 실패했습니다.',
       };
     }
   }

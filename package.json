@@ -32,6 +32,7 @@
     "bcrypt": "^5.0.0",
     "class-transformer": "^0.3.1",
     "class-validator": "^0.12.2",
+    "emailjs-com": "^2.6.4",
     "form-data": "^3.0.0",
     "got": "^11.8.1",
     "graphql": "^15.4.0",

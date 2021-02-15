@@ -7,7 +7,6 @@ import { Verification } from './user/entities/verification.entity';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from './jwt/jwt.module';
-import { SmsModule } from './sms/sms.module';
 import { ProductModule } from './product/product.module';
 import { Product } from './product/entities/product.entity';
 import { Category } from './product/entities/category.entity';
@@ -17,7 +16,6 @@ import { Msg } from './msg/entities/msg.entity';
 import { MsgRoom } from './msg/entities/msg-room.entity';
 import { Wallet } from './user/entities/wallet.entity';
 import { AppControllers } from './app.controllers';
-import { EmailModule } from './email/email.module';
 import { AppServices } from './app.services';
 
 @Module({
@@ -83,16 +81,6 @@ import { AppServices } from './app.services';
     JwtModule.forRoot({ secret: process.env.JWT_SECRET }),
     CommonModule,
     UserModule,
-    SmsModule.forRoot({
-      apiKey: process.env.SOLAPI_API_KEY,
-      apiSecret: process.env.SOLAPI_SECRET_KEY,
-      to: process.env.SOLAPI_FROM,
-    }),
-    EmailModule.forRoot({
-      apiKey: process.env.MAILGUN_API_KEY,
-      domain: process.env.MAILGUN_DOMIAN_NAME,
-      fromEmail: process.env.MAILGUN_FROM_EMAIL,
-    }),
     ProductModule,
     MsgModule,
   ],
