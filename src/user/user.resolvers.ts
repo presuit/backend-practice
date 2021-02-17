@@ -22,6 +22,7 @@ import {
 import { LogInInput, LogInOutput } from './dtos/log-in.dto';
 import { MeOutput } from './dtos/me.dto';
 import { MyWalletOutput } from './dtos/my-wallett.dto';
+import { RequestEmailOutput } from './dtos/request-email.dto';
 import { User } from './entities/user.entity';
 import { Wallet } from './entities/wallet.entity';
 import { UserServices } from './user.services';
@@ -71,6 +72,12 @@ export class UserResolvers {
   @Query((returns) => MeOutput)
   me(@AuthUser() user: User): Promise<MeOutput> {
     return this.userServices.me(user);
+  }
+
+  @Roles(['Any'])
+  @Mutation((returns) => RequestEmailOutput)
+  requestEmail(@AuthUser() user: User): Promise<RequestEmailOutput> {
+    return this.userServices.requestEmail(user);
   }
 }
 

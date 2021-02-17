@@ -24,6 +24,7 @@ import {
 import { LogInInput, LogInOutput } from './dtos/log-in.dto';
 import { MeOutput } from './dtos/me.dto';
 import { MyWalletOutput } from './dtos/my-wallett.dto';
+import { RequestEmailOutput } from './dtos/request-email.dto';
 import { User } from './entities/user.entity';
 import { Verification } from './entities/verification.entity';
 import { Wallet } from './entities/wallet.entity';
@@ -80,9 +81,9 @@ export class UserServices {
       this.emailServices.sendVerifyEmail({
         to: newUser.email,
         html: `<div>
-          <h1> 😉 안녕하세요 테스트용 메일입니다</h1>  
+          <h1> 😉 안녕하세요 '랜더미'입니다.</h1>  
           <h2 style="padding-bottom:10px;">아래의 링크를 클릭하여 인증을 마쳐주세요~🤞</h2>
-          <a style="font-size:20px; margin-top:20px;margin-bottom:20px;padding:20px; background-color:dodgerblue;text-decoration:none;border-radius:10px;color:white;font-weight:600; " href="http://localhost:3000/validate-code/?code=${newVerification.code}">인증하기</a>
+          <a style="font-size:20px; margin-top:20px;margin-bottom:20px;padding:20px; background-color:dodgerblue;text-decoration:none;border-radius:10px;color:white;font-weight:600; " href="${process.env.BASE_FRONT_URL}/validate-code/?code=${newVerification.code}">인증하기</a>
           <h2 style="padding-top:10px;">감사합니다~</h2>
         <div>`,
         subject: '[랜더미]이메일 인증 요청',
@@ -96,6 +97,48 @@ export class UserServices {
       return {
         ok: false,
         error: '회원가입 실패',
+      };
+    }
+  }
+
+  async requestEmail(user: User): Promise<RequestEmailOutput> {
+    try {
+      if (!user) {
+        return {
+          ok: false,
+          error: '이메일 전송할 유저가 존재하지 않습니다.',
+        };
+      }
+      const verification = await this.verifications.findOne({
+        where: { user: { id: user.id } },
+      });
+      if (!verification) {
+        return {
+          ok: false,
+          error: '해당 유저의 verification이 존재하지 않습니다.',
+        };
+      }
+      await this.verifications.delete(verification.id);
+      const newVerification = await this.verifications.save(
+        this.verifications.create({ user }),
+      );
+      this.emailServices.sendVerifyEmail({
+        to: user.email,
+        html: `<div>
+          <h1> 😉 안녕하세요 재송신 하는 '랜더미'입니다.</h1>  
+          <h2 style="padding-bottom:10px;">아래의 링크를 클릭하여 인증을 마쳐주세요~🤞</h2>
+          <a style="font-size:20px; margin-top:20px;margin-bottom:20px;padding:20px; background-color:dodgerblue;text-decoration:none;border-radius:10px;color:white;font-weight:600; " href="${process.env.BASE_FRONT_URL}/validate-code/?code=${newVerification.code}">인증하기</a>
+          <h2 style="padding-top:10px;">감사합니다~</h2>
+        <div>`,
+        subject: '[랜더미]이메일 인증 요청',
+      });
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: '이메일 전송에 실패했습니다.',
       };
     }
   }
