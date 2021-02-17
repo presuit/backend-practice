@@ -17,6 +17,7 @@ import { MsgRoom } from './msg/entities/msg-room.entity';
 import { Wallet } from './user/entities/wallet.entity';
 import { AppControllers } from './app.controllers';
 import { AppServices } from './app.services';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -83,6 +84,21 @@ import { AppServices } from './app.services';
     UserModule,
     ProductModule,
     MsgModule,
+    EmailModule.forRoot(
+      {
+        email: process.env.NODEMAILER_EMAIL,
+        password: process.env.NODEMAILER_PASS,
+      },
+      {
+        port: +process.env.SMTP_PORT,
+        host: process.env.SMTP_HOST,
+        secure: false,
+        auth: {
+          user: process.env.NODEMAILER_EMAIL,
+          pass: process.env.NODEMAILER_PASS,
+        },
+      },
+    ),
   ],
   controllers: [AppControllers],
   providers: [AppServices],

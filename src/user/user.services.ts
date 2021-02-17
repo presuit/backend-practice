@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EmailServices } from 'src/email/email.services';
 import { JwtServices } from 'src/jwt/jwt.services';
 import { Repository } from 'typeorm';
 import { AddPointInput, AddPointOutput } from './dtos/add-point.dto';
@@ -35,6 +36,7 @@ export class UserServices {
     @InjectRepository(Verification)
     private readonly verifications: Repository<Verification>,
     private readonly jwtServices: JwtServices,
+    private readonly emailServices: EmailServices,
   ) {}
 
   async me(user: User): Promise<MeOutput> {
@@ -75,6 +77,16 @@ export class UserServices {
       const newVerification = await this.verifications.save(
         this.verifications.create({ user: newUser }),
       );
+      this.emailServices.sendVerifyEmail({
+        to: newUser.email,
+        html: `<div>
+          <h1> 😉 안녕하세요 테스트용 메일입니다</h1>  
+          <h2 style="padding-bottom:10px;">아래의 링크를 클릭하여 인증을 마쳐주세요~🤞</h2>
+          <a style="font-size:20px; margin-top:20px;margin-bottom:20px;padding:20px; background-color:dodgerblue;text-decoration:none;border-radius:10px;color:white;font-weight:600; " href="http://localhost:3000/validate-code/?code=${newVerification.code}">인증하기</a>
+          <h2 style="padding-top:10px;">감사합니다~</h2>
+        <div>`,
+        subject: '[랜더미]이메일 인증 요청',
+      });
       await this.wallets.save(this.wallets.create({ owner: newUser }));
       return {
         ok: true,
