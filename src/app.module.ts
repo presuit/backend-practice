@@ -76,7 +76,7 @@ import { EmailModule } from './email/email.module';
         MsgRoom,
         Wallet,
       ],
-      synchronize: true,
+      synchronize: process.env.NODE_ENV !== 'production',
       logging: false,
     }),
     JwtModule.forRoot({ secret: process.env.JWT_SECRET }),
