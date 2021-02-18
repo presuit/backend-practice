@@ -8,7 +8,7 @@ export class JwtServices {
   constructor(@Inject(JWT_OPTIONS) private readonly options: JwtOptions) {}
 
   generateJwtToken(payload: IPayload): string {
-    return jwt.sign(payload, this.options.secret);
+    return jwt.sign(payload, this.options.secret, { expiresIn: '1 days' });
   }
 
   decodeJwtToken(token: string): object | string {
